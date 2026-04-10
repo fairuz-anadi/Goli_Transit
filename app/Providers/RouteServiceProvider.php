@@ -33,6 +33,13 @@ class RouteServiceProvider extends ServiceProvider
                 ->prefix('api')
                 ->group(base_path('routes/api.php'));
 
+            // Vercel may forward requests through /api/index.php in a way that strips the
+            // leading /api segment before Laravel matches the route. Registering the API
+            // file a second time without the prefix keeps local /api/... routes working
+            // while also allowing the deployed runtime to resolve the same endpoints.
+            Route::middleware('api')
+                ->group(base_path('routes/api.php'));
+
             Route::middleware('web')
                 ->group(base_path('routes/web.php'));
         });
