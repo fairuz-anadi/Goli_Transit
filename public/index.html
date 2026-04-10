@@ -6,8 +6,8 @@
   <meta name="description" content="GoliTransit helps people navigate Dhaka with practical, step-by-step multi-modal journeys.">
   <title>GoliTransit</title>
   <style>
-    :root{--bg:#f3f8fb;--ink:#0f2433;--muted:#567086;--surface:rgba(255,255,255,.9);--line:rgba(15,36,51,.1);--cyan:#1db4e7;--green:#1fa971;--amber:#d89d23;--rose:#d5566a;--shadow:0 24px 80px rgba(10,33,54,.08)}
-    *{box-sizing:border-box} body{margin:0;font-family:"Segoe UI",system-ui,sans-serif;background:radial-gradient(circle at top left,rgba(29,180,231,.12),transparent 22%),radial-gradient(circle at top right,rgba(31,169,113,.08),transparent 18%),linear-gradient(180deg,#f7fbff,#eff5f8);color:var(--ink)}
+    :root{--bg:#edf4f8;--ink:#0f2433;--muted:#5c7387;--surface:rgba(255,255,255,.92);--surface-2:#f8fbfd;--line:rgba(15,36,51,.09);--cyan:#1599d0;--green:#1b9c6a;--amber:#d89d23;--rose:#d5566a;--navy:#163347;--map:#dfeaf0;--map-water:#c9ddea;--shadow:0 24px 80px rgba(10,33,54,.08)}
+    *{box-sizing:border-box} body{margin:0;font-family:"Segoe UI",system-ui,sans-serif;background:radial-gradient(circle at top left,rgba(21,153,208,.11),transparent 22%),radial-gradient(circle at top right,rgba(27,156,106,.08),transparent 18%),linear-gradient(180deg,#f8fbfd,#edf4f8);color:var(--ink)}
     a{color:inherit} button,input,select{font:inherit}
     .shell{width:min(1280px,calc(100% - 28px));margin:0 auto;padding:20px 0 40px}
     .bar,.hero,.panel,.trip-card,.story-card{background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow)}
@@ -16,10 +16,10 @@
     .eyebrow{margin:0 0 6px;color:var(--cyan);font-size:11px;font-weight:700;letter-spacing:.28em;text-transform:uppercase}
     h1,h2,h3,h4{margin:0;letter-spacing:-.04em}.brand h1{font-size:clamp(20px,2vw,28px)} .brand p{margin:6px 0 0;color:var(--muted);font-size:14px;line-height:1.55}
     .nav{display:flex;flex-wrap:wrap;gap:10px}.nav a,.chip,.ghost{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.82);text-decoration:none;font-size:13px;font-weight:700}
-    .hero{display:grid;grid-template-columns:1.05fr .95fr;gap:22px;align-items:center;margin-top:18px;padding:34px 28px;border-radius:30px;overflow:hidden}
+    .hero{display:grid;grid-template-columns:1.05fr .95fr;gap:22px;align-items:center;margin-top:18px;padding:34px 28px;border-radius:30px;overflow:hidden;background:linear-gradient(180deg,rgba(255,255,255,.96),rgba(244,249,252,.96))}
     .hero h2{font-size:clamp(40px,6vw,78px);line-height:.95;max-width:10ch}.hero p.copy{margin:16px 0 0;max-width:720px;color:var(--muted);font-size:17px;line-height:1.8}
     .actions,.chips,.steps{display:flex;flex-wrap:wrap;gap:10px}.actions{margin-top:24px}.btn,.btn2{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 18px;border-radius:999px;font-size:14px;font-weight:800;border:0;cursor:pointer}
-    .btn{color:#fff;background:linear-gradient(135deg,var(--cyan),#0ea5d4)} .btn2{color:var(--ink);background:#eef6fb;border:1px solid var(--line)}
+    .btn{color:#fff;background:linear-gradient(135deg,var(--navy),var(--cyan))} .btn2{color:var(--ink);background:#eef6fb;border:1px solid var(--line)}
     .hero-side{display:grid;gap:14px}.story-card{padding:18px;border-radius:24px}.label{color:var(--muted);font-size:11px;letter-spacing:.24em;text-transform:uppercase}.value{margin-top:10px;font-size:clamp(24px,3vw,36px);font-weight:900;letter-spacing:-.04em}.note{margin-top:8px;color:var(--muted);font-size:13px;line-height:1.6}
     .highlights{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:18px 0}
     .story-card p{margin:10px 0 0;color:var(--muted);line-height:1.65}
@@ -35,12 +35,28 @@
     .step-num{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:900;background:#eef6fb;color:var(--cyan)}
     .mode-badge{display:inline-flex;align-items:center;justify-content:center;min-height:28px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.08em}
     .car{background:rgba(29,180,231,.12);color:#0d87b0}.rickshaw{background:rgba(31,169,113,.12);color:#13714a}.walk{background:rgba(216,157,35,.14);color:#8b6815}.switch{background:rgba(213,86,106,.12);color:#9d3044}
-    .map-wrap{min-height:620px;border-radius:24px;overflow:hidden;border:1px solid var(--line);background:linear-gradient(rgba(15,36,51,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(15,36,51,.06) 1px,transparent 1px),#f9fcfe;background-size:40px 40px} svg{display:block;width:100%;height:620px}
-    .legend{display:flex;flex-wrap:wrap;gap:12px;margin:14px 0 0}.legend span{display:inline-flex;align-items:center;gap:8px;color:var(--muted);font-size:13px}.legend span::before{content:"";width:10px;height:10px;border-radius:50%;background:currentColor}.normal{color:rgba(15,36,51,.35)} .route{color:var(--green)} .goli{color:rgba(31,169,113,.68)} .overpass{color:var(--amber)}
-    .proof-panel{margin-top:16px;padding:18px;border-radius:22px;background:#fbfdff;border:1px solid var(--line)}
+    .map-wrap{position:relative;min-height:620px;border-radius:24px;overflow:hidden;border:1px solid var(--line);background:
+      radial-gradient(circle at 20% 18%, rgba(255,255,255,.7), transparent 22%),
+      linear-gradient(rgba(22,51,71,.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(22,51,71,.06) 1px, transparent 1px),
+      linear-gradient(180deg, var(--map) 0%, #eef5f9 100%);
+      background-size:auto,40px 40px,40px 40px,auto}
+    .map-wrap::before{content:"";position:absolute;inset:18px 22px 24px 18px;border-radius:20px;background:
+      radial-gradient(circle at 14% 28%, rgba(201,221,234,.9), transparent 10%),
+      radial-gradient(circle at 86% 18%, rgba(201,221,234,.85), transparent 11%),
+      radial-gradient(circle at 78% 78%, rgba(201,221,234,.8), transparent 12%);
+      opacity:.8;pointer-events:none}
+    svg{display:block;width:100%;height:620px}
+    .legend{display:flex;flex-wrap:wrap;gap:12px;margin:14px 0 0}.legend span{display:inline-flex;align-items:center;gap:8px;color:var(--muted);font-size:13px}.legend span::before{content:"";width:10px;height:10px;border-radius:50%;background:currentColor}.normal{color:rgba(15,36,51,.35)} .route{color:var(--green)} .goli{color:rgba(21,153,208,.72)} .overpass{color:var(--amber)}
     .small{font-size:13px;color:var(--muted);line-height:1.7}
+    .explain-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:16px}
+    .explain-card{padding:16px;border-radius:20px;border:1px solid var(--line);background:var(--surface-2)}
+    .explain-card strong{display:block;font-size:15px}
+    .confidence{display:flex;align-items:center;gap:10px;margin-top:14px;padding:12px 14px;border-radius:18px;background:linear-gradient(135deg,rgba(21,153,208,.08),rgba(27,156,106,.08));border:1px solid rgba(21,153,208,.14)}
+    .confidence-bar{flex:1;height:8px;border-radius:999px;background:rgba(15,36,51,.08);overflow:hidden}
+    .confidence-fill{height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--green));border-radius:999px}
     .footer{margin-top:18px;padding:14px 2px 2px;color:var(--muted);font-size:13px;line-height:1.7}.footer strong{color:var(--ink)}
-    @media (max-width:1120px){.hero,.layout,.highlights,.summary,.journey-grid{grid-template-columns:1fr}.bar{flex-direction:column;align-items:flex-start}.nav{justify-content:flex-start}}
+    @media (max-width:1120px){.hero,.layout,.highlights,.summary,.journey-grid,.explain-grid{grid-template-columns:1fr}.bar{flex-direction:column;align-items:flex-start}.nav{justify-content:flex-start}}
     @media (max-width:760px){.shell{width:min(100% - 18px,1280px)}.hero{padding:24px 18px}.map-wrap,svg{min-height:430px;height:430px}}
   </style>
 </head>
@@ -112,17 +128,18 @@
           <p class="label">Why this route</p>
           <h3>Route explanation</h3>
           <p id="routeSummaryText" class="small">Waiting for the live route result.</p>
-          <div class="proof-panel">
-            <div class="label">Live route JSON</div>
-            <pre id="routeResult">Loading sample route...</pre>
+          <div class="explain-grid">
+            <div class="explain-card"><div class="label">Best choice right now</div><strong id="bestChoiceTitle">Analyzing current path...</strong><p id="bestChoiceBody" class="small">We will explain why this route is recommended once the trip is loaded.</p></div>
+            <div class="explain-card"><div class="label">Switch guidance</div><strong id="switchGuideTitle">No switch yet</strong><p id="switchGuideBody" class="small">When a mode change is needed, we will show exactly where it happens.</p></div>
           </div>
+          <div class="confidence"><div><div class="label">Route confidence</div><div id="confidenceText" class="small">Waiting for the live result.</div></div><div class="confidence-bar"><div class="confidence-fill" id="confidenceFill"></div></div></div>
         </div>
       </div>
 
       <div class="panel" id="network">
         <p class="label">Network context</p>
-        <h3>See the live graph behind your trip</h3>
-        <p>The map keeps the route grounded in the actual graph while staying readable for normal travelers.</p>
+        <h3>See your route on a cleaner city-style map</h3>
+        <p>The view below is simplified for clarity, so travelers can focus on the route and transfer points instead of raw network structure.</p>
         <div class="legend"><span class="normal">Normal roads</span><span class="goli">Goli corridors</span><span class="route">Current route</span><span class="overpass">Overpass nodes</span></div>
         <div class="map-wrap"><svg id="graphSvg" viewBox="0 0 1100 620" preserveAspectRatio="xMidYMid meet" role="img" aria-label="GoliTransit live graph"></svg></div>
       </div>
@@ -142,22 +159,32 @@
   function setStats(meta){document.getElementById('nodeCount').textContent=meta.node_count??'-';document.getElementById('edgeCount').textContent=meta.edge_count??'-';document.getElementById('goliEdgeCount').textContent=meta.goli_edge_count??'-';document.getElementById('overpassNodeCount').textContent=meta.overpass_node_count??'-';document.getElementById('networkNote').textContent=`${meta.edge_count??'-'} current links available across the live graph.`}
   function populateSelects(){const options=currentGraph.nodes.map((node)=>`<option value="${node.id}">${node.name}</option>`).join('');startSelect.innerHTML=options;destinationSelect.innerHTML=options;if(!currentGraph.nodes.length)return;startSelect.value=currentGraph.nodes.find((n)=>n.id==='farmgate')?.id??currentGraph.nodes[0].id;destinationSelect.value=currentGraph.nodes.find((n)=>n.id==='gulshan_2')?.id??currentGraph.nodes[currentGraph.nodes.length-1].id}
   function draw(){if(!currentGraph.nodes.length){svg.innerHTML='';return}const points=projection(currentGraph.nodes),activeRouteEdges=new Set(routeEdgeIds(currentRoute));
-    const edgesMarkup=currentGraph.edges.map((edge)=>{const from=points[edge.from],to=points[edge.to];if(!from||!to)return'';let stroke='rgba(15,36,51,.22)',width=1.4;if(edge.is_goli){stroke='rgba(31,169,113,.44)';width=2}if(activeRouteEdges.has(edge.id)){stroke='#1fa971';width=3.4}return `<line x1="${from.x}" y1="${from.y}" x2="${to.x}" y2="${to.y}" stroke="${stroke}" stroke-width="${width}" stroke-linecap="round"></line>`}).join('');
-    const nodesMarkup=currentGraph.nodes.map((node)=>{const point=points[node.id],fill=node.type==='overpass'?'#d89d23':'#0f2433',radius=node.type==='hub'?7:5;return `<g><circle cx="${point.x}" cy="${point.y}" r="${radius+4}" fill="rgba(29,180,231,.08)"></circle><circle cx="${point.x}" cy="${point.y}" r="${radius}" fill="${fill}" stroke="#f7fbff" stroke-width="2"></circle><text x="${point.x+10}" y="${point.y-8}" fill="#274155" font-size="11" font-weight="700">${node.name}</text></g>`}).join('');
-    svg.innerHTML=edgesMarkup+nodesMarkup}
+    const districtMarkup=Object.values(points).map((point)=>`<circle cx="${point.x}" cy="${point.y}" r="36" fill="rgba(255,255,255,.32)"></circle>`).join('');
+    const edgesMarkup=currentGraph.edges.map((edge)=>{const from=points[edge.from],to=points[edge.to];if(!from||!to)return'';let stroke='rgba(15,36,51,.22)',width=1.6,dash='';if(edge.is_goli){stroke='rgba(21,153,208,.52)';width=2.2;dash=' stroke-dasharray="5 7"'}if(activeRouteEdges.has(edge.id)){stroke='#1b9c6a';width=4}return `<line x1="${from.x}" y1="${from.y}" x2="${to.x}" y2="${to.y}" stroke="${stroke}" stroke-width="${width}" stroke-linecap="round"${dash}></line>`}).join('');
+    const nodesMarkup=currentGraph.nodes.map((node)=>{const point=points[node.id],fill=node.type==='overpass'?'#d89d23':'#163347',radius=node.type==='hub'?7:5;return `<g><circle cx="${point.x}" cy="${point.y}" r="${radius+5}" fill="rgba(255,255,255,.42)"></circle><circle cx="${point.x}" cy="${point.y}" r="${radius}" fill="${fill}" stroke="#f7fbff" stroke-width="2"></circle><text x="${point.x+10}" y="${point.y-8}" fill="#274155" font-size="11" font-weight="700">${node.name}</text></g>`}).join('');
+    svg.innerHTML=districtMarkup+edgesMarkup+nodesMarkup}
   function modeClass(mode){return mode==='car'?'car':mode==='rickshaw'?'rickshaw':mode==='walk'?'walk':'switch'}
   function renderSteps(route){const container=document.getElementById('journeySteps');if(!route||!Array.isArray(route.segments)||!route.segments.length){container.innerHTML='<div class="step"><div class="step-num">?</div><div><strong>No route steps yet.</strong><div class="small">Run the planner to generate instructions.</div></div></div>';return}
     container.innerHTML=route.segments.map((segment,index)=>{const switched=segment.switch_penalty>0;const action=segment.mode==='walk'?'Walk':segment.mode==='rickshaw'?'Ride a rickshaw':'Take a car';const text=`${action} from ${segment.from} to ${segment.to}.`;const extra=switched?`Switch vehicles at ${segment.from} before continuing.`:'Continue on the same mode.';return `<div class="step"><div class="step-num">${index+1}</div><div><div class="chips"><span class="mode-badge ${modeClass(segment.mode)}">${segment.mode}</span>${switched?'<span class="mode-badge switch">switch</span>':''}</div><p style="margin:10px 0 0;font-weight:700">${text}</p><div class="small">${extra} Segment cost: ${segment.cost}.</div></div></div>`}).join('')}
-  function updateRoute(route){document.getElementById('routeResult').textContent=JSON.stringify({data:route},null,2);document.getElementById('routeCost').textContent=route?.total_cost??'-';document.getElementById('routeSwitches').textContent=route?.switches??'-';document.getElementById('routeModes').textContent=Array.isArray(route?.selected_modes)&&route.selected_modes.length?route.selected_modes.join(', '):'-';document.getElementById('routeTime').textContent=route?.computation_time_ms!=null?`${route.computation_time_ms} ms`:'-';
+  function updateRoute(route){document.getElementById('routeCost').textContent=route?.total_cost??'-';document.getElementById('routeSwitches').textContent=route?.switches??'-';document.getElementById('routeModes').textContent=Array.isArray(route?.selected_modes)&&route.selected_modes.length?route.selected_modes.join(', '):'-';document.getElementById('routeTime').textContent=route?.computation_time_ms!=null?`${route.computation_time_ms} ms`:'-';
     const first=route?.segments?.[0];if(first){const action=first.mode==='walk'?'Walk now':first.mode==='rickshaw'?'Ride a rickshaw now':'Take a car now';document.getElementById('nextStepTitle').textContent=`${action} toward ${first.to}`;document.getElementById('nextStepBody').textContent=`Start from ${first.from} and continue to ${first.to}. ${route.switches?`This journey includes ${route.switches} vehicle switch${route.switches>1?'es':''}.`:'No vehicle switch is needed right away.'}`;}
-    document.getElementById('routeSummaryText').textContent=route?.justification?.summary??'Route generated from the live graph.';renderSteps(route);draw()}
+    document.getElementById('routeSummaryText').textContent=route?.justification?.summary??'Route generated from the live graph.';
+    const pathNames=Array.isArray(route?.path)&&route.path.length?route.path.join(' -> '):'';
+    document.getElementById('bestChoiceTitle').textContent=route?.selected_modes?.length===1?`Best current option: ${route.selected_modes[0]}`:'Best current option: mixed journey';
+    document.getElementById('bestChoiceBody').textContent=pathNames?`This path follows ${pathNames}. It avoids less suitable links based on the current graph weights and your allowed travel modes.`:'The system is analyzing the most practical path right now.';
+    const switchSegments=Array.isArray(route?.segments)?route.segments.filter((segment)=>segment.switch_penalty>0):[];
+    if(switchSegments.length){document.getElementById('switchGuideTitle').textContent=`Switch at ${switchSegments[0].from}`;document.getElementById('switchGuideBody').textContent=`Your first vehicle change happens at ${switchSegments[0].from}. After that point, continue by ${switchSegments[0].mode}.`;}else{document.getElementById('switchGuideTitle').textContent='No switch needed';document.getElementById('switchGuideBody').textContent='This route can be completed without changing to another vehicle type.';}
+    const confidence=Math.max(55,Math.min(96,92-(route?.switches||0)*10));
+    document.getElementById('confidenceFill').style.width=`${confidence}%`;
+    document.getElementById('confidenceText').textContent=`${confidence}% confidence based on current graph conditions, route continuity, and number of switches.`;
+    renderSteps(route);draw()}
   async function refreshHealth(){try{const response=await fetch('/health',{headers:{Accept:'application/json'}});if(!response.ok)throw new Error();document.getElementById('healthValue').textContent='Live';document.getElementById('healthNote').textContent='Backend is responding from the deployed app.'}catch(error){document.getElementById('healthValue').textContent='Unavailable';document.getElementById('healthNote').textContent='The backend is not reachable right now.'}}
   async function refreshSnapshot(){const response=await apiFetch('/graph/snapshot',{headers:{Accept:'application/json'}});if(!response.ok)throw new Error(`Snapshot request failed (${response.status})`);const snapshot=await response.json();currentGraph=snapshot.data??{nodes:[],edges:[]};setStats(snapshot.meta||{});populateSelects();draw()}
   async function runRoute(){const selectedModes=Array.from(document.getElementById('modes').selectedOptions).map((option)=>option.value),payload={session_id:document.getElementById('sessionId').value||undefined,start:startSelect.value,destination:destinationSelect.value,allowed_modes:selectedModes};const response=await apiFetch('/route',{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify(payload)});const result=await response.json();if(!response.ok)throw new Error(`Route request failed (${response.status})`);currentRoute=result.data;updateRoute(result.data)}
   function loadDemo(){startSelect.value='farmgate';destinationSelect.value='gulshan_2';document.getElementById('sessionId').value='traveler-demo-route'}
-  document.getElementById('routeBtn').addEventListener('click',async()=>{try{await runRoute()}catch(error){document.getElementById('routeResult').textContent='Failed to compute route: '+error.message}});
+  document.getElementById('routeBtn').addEventListener('click',async()=>{try{await runRoute()}catch(error){document.getElementById('routeSummaryText').textContent='Failed to compute a route right now: '+error.message;document.getElementById('bestChoiceTitle').textContent='Route unavailable';document.getElementById('bestChoiceBody').textContent='Please try again or adjust the selected travel modes.';document.getElementById('switchGuideTitle').textContent='No guidance yet';document.getElementById('switchGuideBody').textContent='A route is needed before switch guidance can be shown.';document.getElementById('confidenceFill').style.width='0%';document.getElementById('confidenceText').textContent='No route confidence available yet.'}});
   document.getElementById('sampleBtn').addEventListener('click',loadDemo);
-  (async function init(){await refreshHealth();try{await refreshSnapshot();loadDemo();await runRoute()}catch(error){document.getElementById('routeResult').textContent='Failed to load traveler planner: '+error.message;document.getElementById('routeSummaryText').textContent='The planner could not load the live graph yet. Open /control-room for raw debugging tools.';renderSteps(null)}})();
+  (async function init(){await refreshHealth();try{await refreshSnapshot();loadDemo();await runRoute()}catch(error){document.getElementById('routeSummaryText').textContent='The planner could not load the live graph yet. Open /control-room for technical debugging tools.';document.getElementById('bestChoiceTitle').textContent='Waiting for live data';document.getElementById('bestChoiceBody').textContent='We could not load the traveler route data from the backend yet.';document.getElementById('switchGuideTitle').textContent='No switch guidance yet';document.getElementById('switchGuideBody').textContent='Switch details will appear once the route service responds.';document.getElementById('confidenceText').textContent='No route confidence available yet.';renderSteps(null)}})();
 </script>
 </body>
 </html>
