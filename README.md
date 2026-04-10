@@ -12,18 +12,14 @@ Done now:
 
 - project skeleton is ready
 - `GET /health` exists
-- `POST /api/route` works against a demo graph
+- `POST /api/route` works against the Dhaka graph
 - multi-modal routing with switch penalties is implemented
 - graph edges now use stable `edge_id` values
-- `GET /api/graph/snapshot` exists as a contract/debug endpoint
-- session creation and reroute hooks exist for anomaly flow
+- `GET /api/graph/snapshot` returns the live graph snapshot
+- `POST /api/anomaly` updates graph weights and reroutes affected sessions
+- session creation and reroute hooks are implemented
+- a visual control-room frontend exists at `/`
 - a repeatable route benchmark command exists for the 50-request step
-
-Not done yet:
-
-- real Dhaka graph data
-- live anomaly updates to graph weights
-- demo frontend visualization
 
 ## Architecture
 
