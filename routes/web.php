@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', [WelcomeController::class, 'index']);
+Route::get('/control-room', [WelcomeController::class, 'controlRoom']);
 
 Route::get('/health', function () {
     return response()->json([
