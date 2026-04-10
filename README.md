@@ -1,35 +1,54 @@
 # GoliTransit
 
-GoliTransit is a hackathon backend for multi-modal routing in dense Dhaka-style traffic conditions. This repo uses Laravel on Vercel, but the team blueprint still maps cleanly:
+GoliTransit is a multi-modal routing system built for dense Dhaka-style traffic conditions. It combines a simulated city road graph, a routing engine with vehicle-switch penalties, anomaly-triggered rerouting, and a public control-room UI for live exploration.
 
-- Member A: routing engine and `POST /api/route`
-- Member B: graph data and graph manager contract
-- Member C: anomaly flow, graph snapshot, error handling, and frontend/demo wiring
+Live project:
 
-## Current status
+- `https://goli-transit.vercel.app`
 
-Done now:
+Core judge-facing endpoints:
 
-- project skeleton is ready
-- `GET /health` exists
-- `POST /api/route` works against the Dhaka graph
-- multi-modal routing with switch penalties is implemented
-- graph edges now use stable `edge_id` values
-- `GET /api/graph/snapshot` returns the live graph snapshot
-- `POST /api/anomaly` updates graph weights and reroutes affected sessions
-- session creation and reroute hooks are implemented
-- a visual control-room frontend exists at `/`
-- a repeatable route benchmark command exists for the 50-request step
+- `GET /health`
+- `POST /api/route`
+- `POST /api/anomaly`
+- `GET /api/graph/snapshot`
+
+## Problem Focus
+
+Traditional route planners assume one vehicle type for the whole journey and often ignore alleyways, overpasses, and mode-switch tradeoffs. GoliTransit is built to model the real constraint-heavy situation of Dhaka:
+
+- cars cannot use many narrow golis
+- overpasses are walk-only transfer paths
+- the best route may combine car, rickshaw, and walking
+- sudden traffic anomalies should degrade parts of the network and trigger rerouting
+
+## What The System Does
+
+GoliTransit currently supports:
+
+- Dhaka-inspired road graph with 30 named nodes and multi-modal edge permissions
+- Dijkstra-based routing across `car`, `rickshaw`, and `walk`
+- configurable mode-switch penalties at transfer nodes
+- session-based route saving for reroute scenarios
+- anomaly updates that inflate edge weights and reroute affected sessions
+- graph snapshot endpoint for transparent before/after verification
+- public control-room frontend that visualizes the graph and route flow
 
 ## Architecture
 
-The project is split into three layers that mirror the hackathon team roles:
-
 ```text
 +------------------------------+
+| Frontend / Demo Layer        |
+| /                            |
+| control-room.html            |
++--------------+---------------+
+               |
+               v
++------------------------------+
 | API Layer                    |
-| Laravel routes/controllers   |
-| /api/route /api/anomaly      |
+| /health                      |
+| /api/route                   |
+| /api/anomaly                 |
 | /api/graph/snapshot          |
 +--------------+---------------+
                |
@@ -38,7 +57,7 @@ The project is split into three layers that mirror the hackathon team roles:
 | Routing Layer                |
 | DijkstraRoutingService       |
 | SessionManager               |
-| mode switching + rerouting   |
+| mode switches + rerouting    |
 +--------------+---------------+
                |
                v
@@ -46,113 +65,69 @@ The project is split into three layers that mirror the hackathon team roles:
 | Graph Layer                  |
 | MapData                      |
 | GraphManager                 |
-| Dhaka nodes, edges, weights  |
+| nodes, edges, weights        |
 +------------------------------+
 ```
 
-Layer ownership:
+## Graph Design
 
-- Member B owns the graph layer
-- Member A owns the routing layer
-- Member C owns the API/anomaly/frontend integration layer
+The graph uses 30 recognizable Dhaka locations, including:
 
-## Graph design decisions
+- `farmgate`
+- `karwan_bazar`
+- `tejgaon`
+- `mohakhali`
+- `banani`
+- `gulshan_1`
+- `gulshan_2`
+- `badda`
+- `kuril`
+- `motijheel`
+- `old_dhaka`
+- `sadarghat`
 
-Why 25-30 nodes:
+Design choices:
 
-- the hackathon asks for a simulated city network, so we chose 30 recognizable Dhaka locations
-- this is large enough to demonstrate real rerouting behavior without making the demo graph too heavy to reason about live
-- hubs such as Farmgate, Karwan Bazar, Mohakhali, Banani, Gulshan, Badda, Kuril, Shahbagh, and Motijheel were included so routes can branch in meaningful ways
-
-How golis are modeled:
-
-- goli segments are modeled as edges with `car_allowed=false`
-- those same edges typically allow `rickshaw_allowed=true` and `walk_allowed=true`
-- examples include `tejgaon_goli`, `banani_goli`, and the Old Dhaka to Sadarghat corridor
-- this gives the routing layer a reason to prefer alleyway detours when motorized main roads degrade
-
-How overpasses are modeled:
-
-- overpasses are explicit nodes such as `farmgate_overpass` and `mohakhali_overpass`
-- overpass edges are walk-only with `walk_allowed=true` and both motorized flags disabled
-- this makes transfer behavior visible and supports the “walk across foot overpass” story from the problem statement
-
-How transfer points are modeled:
-
-- transfer logic lives in the routing config, but the graph was designed so hubs and overpasses naturally serve as switching opportunities
-- Farmgate, Karwan Bazar, Green Road, and similar connection-heavy nodes are intended to be realistic transfer candidates
-
-How anomaly inflation is modeled:
-
+- goli edges block cars but still allow rickshaw and walking
+- overpasses are modeled as walk-only transfers
+- most roads are directional through explicit forward and reverse edges
 - each edge stores both `base_weight` and `current_weight`
-- `updateAnomalyZone()` can inflate by explicit edge IDs
-- `updateAnomalyZoneWithBoundingBox()` can also inflate all edges whose midpoint falls inside a lat/lng bounding box
-- `getGraph()` immediately reflects the updated `current_weight` values so C's snapshot endpoint can prove the change
+- anomaly updates target explicit edge IDs or a geographic bounding box
 
-## Assumptions
+## Transport Rules
 
-- we assumed the simulated graph should use real Dhaka place names and approximate coordinates, not exact GIS-grade geometry
-- we assumed VIP convoys and gridlock anomalies primarily affect weighted travel cost, not node existence
-- we assumed golis are generally not car-accessible but remain viable for rickshaws and walking
-- we assumed overpasses are walk-only transitions
-- we assumed the graph is directional, so we modeled most roads with forward and reverse edges explicitly
-- we assumed route switching should happen at a limited set of transfer nodes rather than anywhere in the graph
-- we assumed a medium-sized graph is more useful for demo clarity than a street-perfect city export
-
-## Team contract
-
-These contracts are now frozen unless the whole team agrees to change them.
-
-### Allowed modes
+Allowed modes:
 
 ```json
 ["car", "rickshaw", "walk"]
 ```
 
-### Node format
-
-```json
-{
-  "id": "farmgate"
-}
-```
-
-### Edge format
-
-Every directed edge must use this shape:
+Edge example:
 
 ```json
 {
   "id": "edge_farmgate_karwan_bazar",
+  "from": "farmgate",
   "to": "karwan_bazar",
-  "cost": 4,
-  "modes": ["car", "rickshaw", "walk"]
+  "base_weight": 4,
+  "current_weight": 4,
+  "distance_km": 1.3,
+  "car_allowed": true,
+  "rickshaw_allowed": true,
+  "walk_allowed": true,
+  "is_goli": false,
+  "is_overpass": false
 }
 ```
 
-### Graph format
-
-Member B should build the real graph in this exact adjacency-list shape:
-
-```json
-{
-  "farmgate": [
-    {
-      "id": "edge_farmgate_karwan_bazar",
-      "to": "karwan_bazar",
-      "cost": 4,
-      "modes": ["car", "rickshaw", "walk"]
-    }
-  ],
-  "karwan_bazar": []
-}
-```
-
-## API contract
+## API
 
 ### `GET /health`
 
-Response:
+Purpose:
+- fast uptime and deployment check
+
+Example response:
 
 ```json
 {
@@ -163,234 +138,9 @@ Response:
 ### `POST /api/route`
 
 Purpose:
-Return the best currently available route using one or more allowed travel modes.
+- compute the best currently available route using one or more allowed travel modes
 
-Request body:
-
-```json
-{
-  "session_id": "session-123",
-  "start": "farmgate",
-  "destination": "gulshan",
-  "allowed_modes": ["car", "rickshaw", "walk"]
-}
-```
-
-Current behavior:
-
-- validation requires valid node IDs
-- the engine searches across all provided modes
-- mode switching is allowed only at configured transfer nodes
-- each switch adds the configured switch penalty
-- every route is saved to the in-memory session manager
-- if `session_id` is omitted, the backend generates one automatically
-
-Response shape:
-
-```json
-{
-  "data": {
-    "session_id": "session-123",
-    "start": "farmgate",
-    "destination": "gulshan",
-    "allowed_modes": ["car", "rickshaw", "walk"],
-    "selected_modes": ["walk", "rickshaw"],
-    "path": ["farmgate", "green_road", "gulshan"],
-    "nodes": ["farmgate", "green_road", "gulshan"],
-    "segments": [
-      {
-        "edge_id": "edge_farmgate_karwan_bazar",
-        "from": "farmgate",
-        "to": "karwan_bazar",
-        "cost": 4,
-        "mode": "car",
-        "previous_mode": "car",
-        "switch_penalty": 0,
-        "type": "travel"
-      }
-    ],
-    "route_segments": [],
-    "total_cost": 12,
-    "switches": 1,
-    "computation_time_ms": 2,
-    "justification": {
-      "summary": "Best available route on the current demo graph using the selected travel modes.",
-      "mode_switches": 1,
-      "mode_switch_penalty_applied": 3,
-      "note": "This is the Step A3 multi-modal routing baseline with designated transfer nodes and switch penalties."
-    },
-    "session_saved": true
-  }
-}
-```
-
-### `GET /api/graph/snapshot`
-
-Purpose:
-Give Member B and Member C a stable debug endpoint that shows the current graph contract and edge IDs.
-
-Response shape:
-
-```json
-{
-  "data": {
-    "nodes": ["farmgate", "karwan_bazar"],
-    "edges": [
-      {
-        "id": "edge_farmgate_karwan_bazar",
-        "from": "farmgate",
-        "to": "karwan_bazar",
-        "cost": 4,
-        "modes": ["car", "rickshaw", "walk"]
-      }
-    ]
-  }
-}
-```
-
-### `POST /api/anomaly`
-
-Purpose:
-This is the future Step C3 endpoint. The request contract is frozen, and the session reroute hook is already wired so Member C can build on it.
-
-Request body:
-
-```json
-{
-  "edge_ids": ["edge_tejgaon_gulshan"],
-  "multiplier": 10
-}
-```
-
-Target behavior later:
-
-- inflate the specified edge costs
-- return affected edges, new weights, and rerouted-session count
-
-Current behavior:
-
-- validates the payload
-- triggers `rerouteAffectedSessions(affectedEdges)` for any saved sessions already using those edge IDs
-- returns `202 Accepted`
-- does not yet change graph weights
-
-Graph-layer support already available for Member B:
-
-- `updateAnomalyZone(edgeIds, multiplier)`
-- `updateAnomalyZoneWithBoundingBox(edgeIds, multiplier, boundingBox)`
-
-Bounding box shape:
-
-```json
-{
-  "min_lat": 23.75,
-  "max_lat": 23.79,
-  "min_lng": 90.39,
-  "max_lng": 90.42
-}
-```
-
-## Ownership
-
-### Member A
-
-- routing logic
-- route response contract
-- future multi-modal switch logic
-- future session rerouting logic
-
-Files currently relevant:
-
-- `app/Services/Routing/DemoGraphService.php`
-- `app/Services/Routing/DijkstraRoutingService.php`
-- `app/Services/Sessions/SessionManager.php`
-- `app/Http/Controllers/Api/RouteController.php`
-- `routes/api.php`
-
-### Member B
-
-- replace demo graph with real Dhaka graph
-- keep node IDs and edge shape exactly as documented
-- later add anomaly-aware graph update methods
-
-Best starting point:
-
-- `app/Services/Graph/MapData.php`
-- `app/Services/Graph/GraphManager.php`
-
-### Member C
-
-- implement real anomaly handling behind `POST /api/anomaly`
-- extend `GET /api/graph/snapshot`
-- add error handling and demo-facing integration
-
-Best starting points:
-
-- `app/Http/Controllers/Api/AnomalyController.php`
-- `app/Http/Controllers/Api/GraphSnapshotController.php`
-- `app/Services/Sessions/SessionManager.php`
-
-## Local commands
-
-Install:
-
-```bash
-composer install
-npm install
-```
-
-First-time local setup:
-
-```bash
-copy .env.example .env
-php artisan key:generate --force
-```
-
-Serve locally:
-
-```bash
-php artisan serve
-```
-
-Useful checks:
-
-```bash
-php artisan route:list
-php artisan golitransit:benchmark-route --base-url=http://127.0.0.1:8000
-```
-
-## Deployment notes
-
-Vercel files already exist:
-
-- `api/index.php`
-- `vercel.json`
-
-Deploy is not the current blocker. Finish the graph contract and feature slices first, then deploy once `GET /health` and the route flow are stable.
-
-## Endpoints for judges
-
-These are the 4 endpoints judges should be able to test immediately.
-
-### 1. `GET /health`
-
-Purpose:
-Fast deployment and uptime check.
-
-Example response:
-
-```json
-{
-  "status": "ok"
-}
-```
-
-### 2. `POST /api/route`
-
-Purpose:
-Return a best-effort route using the currently allowed modes and current edge weights.
-
-Recommended example body:
+Example request:
 
 ```json
 {
@@ -413,13 +163,35 @@ Example response shape:
     "selected_modes": ["car"],
     "path": ["farmgate", "karwan_bazar", "tejgaon", "banani", "gulshan_1", "gulshan_2"],
     "nodes": ["farmgate", "karwan_bazar", "tejgaon", "banani", "gulshan_1", "gulshan_2"],
-    "segments": [],
-    "route_segments": [],
+    "segments": [
+      {
+        "edge_id": "edge_farmgate_karwan_bazar",
+        "from": "farmgate",
+        "to": "karwan_bazar",
+        "cost": 4,
+        "mode": "car",
+        "previous_mode": "car",
+        "switch_penalty": 0,
+        "type": "travel"
+      }
+    ],
+    "route_segments": [
+      {
+        "edge_id": "edge_farmgate_karwan_bazar",
+        "from": "farmgate",
+        "to": "karwan_bazar",
+        "cost": 4,
+        "mode": "car",
+        "previous_mode": "car",
+        "switch_penalty": 0,
+        "type": "travel"
+      }
+    ],
     "total_cost": 20,
     "switches": 0,
     "computation_time_ms": 4,
     "justification": {
-      "summary": "Best available route on the current graph using the selected travel modes.",
+      "summary": "Best available route on the current demo graph using the selected travel modes.",
       "mode_switches": 0,
       "mode_switch_penalty_applied": 0,
       "note": "Mode switching is allowed only at configured transfer nodes."
@@ -429,12 +201,12 @@ Example response shape:
 }
 ```
 
-### 3. `POST /api/anomaly`
+### `POST /api/anomaly`
 
 Purpose:
-Trigger anomaly handling against specific edge IDs now, and support bounding-box driven anomalies as the graph layer evolves.
+- inflate selected edges and reroute active sessions affected by those edges
 
-Example body using edge IDs:
+Example request by edge IDs:
 
 ```json
 {
@@ -443,7 +215,7 @@ Example body using edge IDs:
 }
 ```
 
-Example body using an anomaly box at the graph layer:
+Example request by bounding box:
 
 ```json
 {
@@ -458,34 +230,55 @@ Example body using an anomaly box at the graph layer:
 }
 ```
 
-Current response shape:
+Example response shape:
 
 ```json
 {
-  "message": "Anomaly weight updates are still reserved for Step C3, but session rerouting is now wired.",
+  "message": "Anomaly applied successfully.",
   "contract": {
-    "edge_ids": ["edge_karwan_bazar_tejgaon"],
-    "multiplier": 10
+    "edge_ids": ["edge_karwan_bazar_tejgaon", "edge_tejgaon_banani"],
+    "multiplier": 10,
+    "bounding_box": null
   },
   "reroute_summary": {
-    "affected_edge_ids": ["edge_karwan_bazar_tejgaon"],
+    "affected_edge_ids": ["edge_karwan_bazar_tejgaon", "edge_tejgaon_banani"],
     "sessions_rerouted": 1,
     "sessions": []
+  },
+  "affected_edges": [
+    {
+      "id": "edge_karwan_bazar_tejgaon",
+      "from": "karwan_bazar",
+      "to": "tejgaon",
+      "base_weight": 4,
+      "current_weight": 40
+    }
+  ],
+  "meta": {
+    "updated_edges": 2
   }
 }
 ```
 
-### 4. `GET /api/graph/snapshot`
+### `GET /api/graph/snapshot`
 
 Purpose:
-Show the graph exactly as the system sees it right now, including `current_weight` after anomaly updates.
+- expose the current graph exactly as the system sees it, including live `current_weight` values
 
 Example response shape:
 
 ```json
 {
   "data": {
-    "nodes": ["farmgate", "karwan_bazar", "tejgaon"],
+    "nodes": [
+      {
+        "id": "farmgate",
+        "name": "Farmgate",
+        "lat": 23.758,
+        "lng": 90.3892,
+        "type": "hub"
+      }
+    ],
     "edges": [
       {
         "id": "edge_karwan_bazar_tejgaon",
@@ -496,17 +289,109 @@ Example response shape:
         "distance_km": 1.5,
         "car_allowed": true,
         "rickshaw_allowed": true,
-        "walk_allowed": true
+        "walk_allowed": true,
+        "is_goli": false,
+        "is_overpass": false
       }
     ]
+  },
+  "meta": {
+    "source": "graph_manager",
+    "node_count": 30,
+    "edge_count": 64,
+    "goli_edge_count": 6,
+    "overpass_node_count": 2
   }
 }
-
 ```
 
-## Dhaka example points
+## Frontend Demo
 
-These real Dhaka locations are already modeled in the graph and are good examples for demos and Postman requests:
+The live homepage is a public control-room UI that:
+
+- loads live graph data from the deployed backend
+- visualizes the network as an SVG map
+- lets users run a route request from the browser
+- lets testers trigger an anomaly and inspect changed edges
+- keeps quick links to `/health` and `/api/graph/snapshot`
+
+Recommended demo flow:
+
+1. Open the live homepage
+2. Show the graph and node counts
+3. Run a route from `farmgate` to `gulshan_2`
+4. Trigger anomaly on `edge_karwan_bazar_tejgaon` and `edge_tejgaon_banani`
+5. Refresh the snapshot and show updated weights
+6. Run the route again and compare the result
+
+## Local Setup
+
+Install dependencies:
+
+```bash
+composer install
+npm install
+```
+
+First-time setup:
+
+```bash
+copy .env.example .env
+php artisan key:generate --force
+```
+
+Run locally:
+
+```bash
+php artisan serve
+```
+
+Useful checks:
+
+```bash
+php artisan route:list
+php artisan golitransit:benchmark-route --base-url=http://127.0.0.1:8000
+```
+
+## Deployment
+
+This project is deployed on Vercel using:
+
+- [vercel.json](/d:/Project/Hackathon/GoliTransit/vercel.json)
+- [index.php](/d:/Project/Hackathon/GoliTransit/api/index.php)
+
+Required Vercel environment variables:
+
+```env
+APP_NAME=GoliTransit
+APP_ENV=production
+APP_DEBUG=false
+APP_KEY=base64:YOUR_APP_KEY
+APP_URL=https://goli-transit.vercel.app
+LOG_CHANNEL=stderr
+CACHE_DRIVER=array
+SESSION_DRIVER=cookie
+SESSION_SECURE_COOKIE=true
+```
+
+## Submission Assets
+
+Included in this repo:
+
+- final source code
+- [README.md](/d:/Project/Hackathon/GoliTransit/README.md)
+- [DEPLOY_CHECKLIST.md](/d:/Project/Hackathon/GoliTransit/DEPLOY_CHECKLIST.md)
+- [PROJECT_STATUS.md](/d:/Project/Hackathon/GoliTransit/PROJECT_STATUS.md)
+- [GoliTransit.postman_collection.json](/d:/Project/Hackathon/GoliTransit/postman/GoliTransit.postman_collection.json)
+
+Still needed by the team before final submission:
+
+- final live endpoint verification on the single kept Vercel project
+- demo video
+
+## Dhaka Reference Points
+
+These are good route/demo examples:
 
 - `farmgate` — 23.7580, 90.3892
 - `karwan_bazar` — 23.7515, 90.3908
