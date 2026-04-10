@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GoliTransit | Hackathon Command Deck</title>
+    <meta
+      name="description"
+      content="A dramatic hackathon frontend for GoliTransit with live route planning, anomaly controls, and a Dhaka network map."
+    />
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="./app.js" defer></script>
+  </head>
+  <body>
+    <div class="ambient ambient-a"></div>
+    <div class="ambient ambient-b"></div>
+    <div class="grid-overlay"></div>
+
+    <main class="shell">
+      <header class="topbar panel">
+        <div class="brand-lockup">
+          <div class="brand-mark">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+          <div>
+            <p class="eyebrow">Hackathon demo interface</p>
+            <h1>GoliTransit</h1>
+            <p class="subtle">
+              A cinematic control deck for multimodal routing, anomaly testing,
+              and live graph visualization across Dhaka.
+            </p>
+          </div>
+        </div>
+
+        <div class="topbar-actions">
+          <label class="api-field">
+            <span>API base URL</span>
+            <input id="apiBase" type="text" placeholder="http://127.0.0.1:8000" />
+          </label>
+          <button class="btn btn-ghost" id="saveApiBase">Save</button>
+          <button class="btn btn-primary" id="connectApi">Connect</button>
+        </div>
+      </header>
+
+      <section class="hero">
+        <div class="hero-copy panel">
+          <p class="eyebrow">Dhaka traffic intelligence</p>
+          <h2>Design built for judges who want to feel the system, not just read it.</h2>
+          <p class="lede">
+            The interface turns your backend into a high-drama transit console:
+            route planning on the left, a live city graph in the middle, and API
+            proof on the right. It is tuned for presentations, reroutes, and
+            anomaly storytelling.
+          </p>
+
+          <div class="hero-metrics" id="heroMetrics"></div>
+
+          <div class="hero-actions">
+            <button class="btn btn-primary" id="runRoute">Compute route</button>
+            <button class="btn btn-secondary" id="loadSnapshot">Load snapshot</button>
+            <button class="btn btn-ghost" id="triggerAnomaly">Trigger anomaly</button>
+          </div>
+        </div>
+
+        <div class="hero-side panel">
+          <div class="status-ring">
+            <div class="status-ring-core">
+              <span id="connectionState">Offline demo</span>
+              <strong>Transit atlas</strong>
+            </div>
+          </div>
+          <div class="scenario-stack" id="scenarioStack"></div>
+        </div>
+      </section>
+
+      <section class="dashboard">
+        <aside class="panel planner">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Route planner</p>
+              <h3>Compose a live trip</h3>
+            </div>
+            <span class="pill pill-warm">Backend-ready</span>
+          </div>
+
+          <form id="routeForm" class="route-form">
+            <label>
+              <span>Start</span>
+              <select id="startNode"></select>
+            </label>
+            <label>
+              <span>Destination</span>
+              <select id="destinationNode"></select>
+            </label>
+            <label>
+              <span>Session ID</span>
+              <input id="sessionId" type="text" placeholder="demo-farmgate-gulshan" />
+            </label>
+
+            <div class="mode-group">
+              <span>Allowed modes</span>
+              <div class="mode-chips" id="modeChips"></div>
+            </div>
+
+            <div class="planner-actions">
+              <button class="btn btn-primary" type="submit">Run route</button>
+              <button class="btn btn-secondary" type="button" id="resetScenario">
+                Reset demo
+              </button>
+            </div>
+          </form>
+
+          <div class="mini-list">
+            <div class="mini-card">
+              <span>Route endpoint</span>
+              <strong>POST /api/route</strong>
+            </div>
+            <div class="mini-card">
+              <span>Graph contract</span>
+              <strong>GET /api/graph/snapshot</strong>
+            </div>
+            <div class="mini-card">
+              <span>Anomaly control</span>
+              <strong>POST /api/anomaly</strong>
+            </div>
+          </div>
+        </aside>
+
+        <section class="panel map-panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Dhaka network map</p>
+              <h3>Route geometry with live highlights</h3>
+            </div>
+            <span class="pill">Interactive canvas</span>
+          </div>
+
+          <div class="map-frame">
+            <div class="map-rings"></div>
+            <svg id="networkMap" viewBox="0 0 1000 720" aria-label="Dhaka network map"></svg>
+            <div class="map-caption">
+              <span>Motion cues are decorative, but node labels and path state update from backend responses.</span>
+            </div>
+          </div>
+
+          <div class="route-strip" id="routeStrip"></div>
+        </section>
+
+        <aside class="panel insight-panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Live response</p>
+              <h3>Proof for the judges</h3>
+            </div>
+            <span class="pill pill-cool" id="responseStatus">Demo data</span>
+          </div>
+
+          <div class="route-summary" id="routeSummary"></div>
+
+          <div class="tab-row">
+            <button class="tab active" data-tab="route">Route</button>
+            <button class="tab" data-tab="snapshot">Snapshot</button>
+            <button class="tab" data-tab="anomaly">Anomaly</button>
+          </div>
+
+          <pre class="console" id="responseConsole"></pre>
+
+          <div class="api-card">
+            <span>Tip</span>
+            <p>
+              Point the API base URL at your Laravel backend, then use the route
+              and anomaly buttons to show the live system behavior.
+            </p>
+          </div>
+        </aside>
+      </section>
+    </main>
+  </body>
+</html>
