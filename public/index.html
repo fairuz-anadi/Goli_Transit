@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="GoliTransit helps people navigate Dhaka with practical, step-by-step multi-modal journeys.">
+  <title>GoliTransit</title>
+  <style>
+    :root{--bg:#f3f8fb;--ink:#0f2433;--muted:#567086;--surface:rgba(255,255,255,.9);--line:rgba(15,36,51,.1);--cyan:#1db4e7;--green:#1fa971;--amber:#d89d23;--rose:#d5566a;--shadow:0 24px 80px rgba(10,33,54,.08)}
+    *{box-sizing:border-box} body{margin:0;font-family:"Segoe UI",system-ui,sans-serif;background:radial-gradient(circle at top left,rgba(29,180,231,.12),transparent 22%),radial-gradient(circle at top right,rgba(31,169,113,.08),transparent 18%),linear-gradient(180deg,#f7fbff,#eff5f8);color:var(--ink)}
+    a{color:inherit} button,input,select{font:inherit}
+    .shell{width:min(1280px,calc(100% - 28px));margin:0 auto;padding:20px 0 40px}
+    .bar,.hero,.panel,.trip-card,.story-card{background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow)}
+    .bar{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:16px 18px;border-radius:24px;backdrop-filter:blur(18px)}
+    .brand{display:flex;gap:14px;align-items:center}.mark{width:50px;height:50px;border-radius:16px;display:grid;place-items:center;background:linear-gradient(135deg,rgba(29,180,231,.16),rgba(31,169,113,.12));border:1px solid rgba(29,180,231,.18)} .mark svg{width:28px;height:28px;color:var(--cyan)}
+    .eyebrow{margin:0 0 6px;color:var(--cyan);font-size:11px;font-weight:700;letter-spacing:.28em;text-transform:uppercase}
+    h1,h2,h3,h4{margin:0;letter-spacing:-.04em}.brand h1{font-size:clamp(20px,2vw,28px)} .brand p{margin:6px 0 0;color:var(--muted);font-size:14px;line-height:1.55}
+    .nav{display:flex;flex-wrap:wrap;gap:10px}.nav a,.chip,.ghost{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.82);text-decoration:none;font-size:13px;font-weight:700}
+    .hero{display:grid;grid-template-columns:1.05fr .95fr;gap:22px;align-items:center;margin-top:18px;padding:34px 28px;border-radius:30px;overflow:hidden}
+    .hero h2{font-size:clamp(40px,6vw,78px);line-height:.95;max-width:10ch}.hero p.copy{margin:16px 0 0;max-width:720px;color:var(--muted);font-size:17px;line-height:1.8}
+    .actions,.chips,.steps{display:flex;flex-wrap:wrap;gap:10px}.actions{margin-top:24px}.btn,.btn2{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 18px;border-radius:999px;font-size:14px;font-weight:800;border:0;cursor:pointer}
+    .btn{color:#fff;background:linear-gradient(135deg,var(--cyan),#0ea5d4)} .btn2{color:var(--ink);background:#eef6fb;border:1px solid var(--line)}
+    .hero-side{display:grid;gap:14px}.story-card{padding:18px;border-radius:24px}.label{color:var(--muted);font-size:11px;letter-spacing:.24em;text-transform:uppercase}.value{margin-top:10px;font-size:clamp(24px,3vw,36px);font-weight:900;letter-spacing:-.04em}.note{margin-top:8px;color:var(--muted);font-size:13px;line-height:1.6}
+    .highlights{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:18px 0}
+    .story-card p{margin:10px 0 0;color:var(--muted);line-height:1.65}
+    .section-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin:22px 0 12px}.section-head p{margin:10px 0 0;color:var(--muted);max-width:760px;line-height:1.72}
+    .layout{display:grid;grid-template-columns:380px minmax(0,1fr);gap:16px;align-items:start}
+    .panel{padding:20px;border-radius:28px}.panel h3{margin-top:8px;font-size:22px}.panel p{margin:10px 0 0;color:var(--muted);line-height:1.7;font-size:14px}
+    .field{display:grid;gap:8px;margin-top:16px}.field label{font-size:13px;font-weight:700}.field input,.field select{width:100%;border-radius:16px;border:1px solid var(--line);background:#fbfdff;color:var(--ink);padding:12px 14px;outline:none}
+    .next-step{border-radius:22px;padding:18px;background:linear-gradient(135deg,rgba(29,180,231,.1),rgba(31,169,113,.08));border:1px solid rgba(29,180,231,.15);margin-top:18px}
+    .next-step strong{display:block;font-size:26px;line-height:1.1}.next-step p{margin:10px 0 0;color:var(--muted);line-height:1.7}
+    .summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:16px}.trip-card{padding:14px;border-radius:20px}.trip-card .value{font-size:20px}
+    .journey{display:grid;gap:14px}.journey-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:16px}
+    .steps{display:grid;gap:12px}.step{display:grid;grid-template-columns:auto 1fr;gap:12px;padding:14px 16px;border-radius:20px;border:1px solid var(--line);background:#fbfdff}
+    .step-num{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:900;background:#eef6fb;color:var(--cyan)}
+    .mode-badge{display:inline-flex;align-items:center;justify-content:center;min-height:28px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.08em}
+    .car{background:rgba(29,180,231,.12);color:#0d87b0}.rickshaw{background:rgba(31,169,113,.12);color:#13714a}.walk{background:rgba(216,157,35,.14);color:#8b6815}.switch{background:rgba(213,86,106,.12);color:#9d3044}
+    .map-wrap{min-height:620px;border-radius:24px;overflow:hidden;border:1px solid var(--line);background:linear-gradient(rgba(15,36,51,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(15,36,51,.06) 1px,transparent 1px),#f9fcfe;background-size:40px 40px} svg{display:block;width:100%;height:620px}
+    .legend{display:flex;flex-wrap:wrap;gap:12px;margin:14px 0 0}.legend span{display:inline-flex;align-items:center;gap:8px;color:var(--muted);font-size:13px}.legend span::before{content:"";width:10px;height:10px;border-radius:50%;background:currentColor}.normal{color:rgba(15,36,51,.35)} .route{color:var(--green)} .goli{color:rgba(31,169,113,.68)} .overpass{color:var(--amber)}
+    .proof-panel{margin-top:16px;padding:18px;border-radius:22px;background:#fbfdff;border:1px solid var(--line)}
+    .small{font-size:13px;color:var(--muted);line-height:1.7}
+    .footer{margin-top:18px;padding:14px 2px 2px;color:var(--muted);font-size:13px;line-height:1.7}.footer strong{color:var(--ink)}
+    @media (max-width:1120px){.hero,.layout,.highlights,.summary,.journey-grid{grid-template-columns:1fr}.bar{flex-direction:column;align-items:flex-start}.nav{justify-content:flex-start}}
+    @media (max-width:760px){.shell{width:min(100% - 18px,1280px)}.hero{padding:24px 18px}.map-wrap,svg{min-height:430px;height:430px}}
+  </style>
+</head>
+<body>
+<main class="shell">
+  <header class="bar">
+    <div class="brand">
+      <div class="mark" aria-hidden="true"><svg viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 49C22 39 30 31 39 24C46 18 53 15 59 15" stroke="currentColor" stroke-width="4.8" stroke-linecap="round"/><path d="M14 23C22 25 30 29 36 35C43 41 50 46 59 49" stroke="rgba(31,169,113,.52)" stroke-width="4.2" stroke-linecap="round"/><circle cx="15" cy="48" r="5" fill="currentColor"/><circle cx="37" cy="34" r="5" fill="currentColor"/><circle cx="59" cy="15" r="5" fill="currentColor"/><circle cx="59" cy="49" r="4" fill="rgba(216,157,35,.95)"/></svg></div>
+      <div><p class="eyebrow">GoliTransit</p><h1>Get a practical Dhaka journey, not just a route line.</h1><p>See your next vehicle, where to switch, and why this path makes sense.</p></div>
+    </div>
+    <nav class="nav"><a href="#planner">Plan trip</a><a href="#journey">Journey steps</a><a href="#network">Live map</a><a href="/control-room">Control room</a></nav>
+  </header>
+
+  <section class="hero">
+    <div>
+      <p class="eyebrow">Traveler-first planner</p>
+      <h2>Know what to ride next to reach your destination.</h2>
+      <p class="copy">GoliTransit is built for real Dhaka-style movement. If the fastest route needs a car on a main road, then a rickshaw through a goli, then a short walk across an overpass, this planner tells you exactly that in plain language.</p>
+      <div class="actions"><a class="btn" href="#planner">Plan my trip</a><a class="btn2" href="/control-room">Open judge control room</a></div>
+    </div>
+    <div class="hero-side">
+      <div class="story-card"><div class="label">What users need</div><div class="value">Clear next step</div><p>Instead of raw graph output, travelers see the immediate vehicle, switch point, and final action.</p></div>
+      <div class="story-card"><div class="label">Live intelligence</div><div class="value" id="healthValue">Checking...</div><p id="healthNote">Connecting to the deployed backend now.</p></div>
+      <div class="story-card"><div class="label">Built for Dhaka</div><div class="value" id="nodeCount">-</div><p id="networkNote">Loading the current graph footprint.</p></div>
+    </div>
+  </section>
+
+  <section class="highlights">
+    <div class="story-card"><div class="label">Modes</div><div class="value" id="modeCount">3</div><p>Car, rickshaw, and walking in one journey plan.</p></div>
+    <div class="story-card"><div class="label">Live graph</div><div class="value" id="edgeCount">-</div><p>Current road links and weights from the deployed system.</p></div>
+    <div class="story-card"><div class="label">Goli support</div><div class="value" id="goliEdgeCount">-</div><p>Narrow streets where regular cars cannot pass.</p></div>
+    <div class="story-card"><div class="label">Transfer points</div><div class="value" id="overpassNodeCount">-</div><p>Walk-heavy nodes and overpass-style switches.</p></div>
+  </section>
+
+  <section class="section-head"><div><p class="eyebrow">Plan your movement</p><h3>A route planner that speaks like a travel assistant.</h3><p>Choose where you are and where you want to go, then GoliTransit returns a recommended journey plus the exact next action you should take.</p></div></section>
+
+  <section class="layout" id="planner">
+    <div class="panel">
+      <p class="label">Trip input</p>
+      <h3>Find my best journey</h3>
+      <p>We combine the allowed modes, current road weights, and transfer rules to recommend a practical path.</p>
+      <div class="field"><label for="start">Start</label><select id="start"></select></div>
+      <div class="field"><label for="destination">Destination</label><select id="destination"></select></div>
+      <div class="field"><label for="modes">Allowed modes</label><select id="modes" multiple size="3"><option value="car" selected>car</option><option value="rickshaw" selected>rickshaw</option><option value="walk" selected>walk</option></select></div>
+      <div class="field"><label for="sessionId">Trip reference</label><input id="sessionId" value="public-traveler-session" autocomplete="off"></div>
+      <div class="btn-row"><button id="routeBtn" class="btn" type="button">Plan trip</button><button id="sampleBtn" class="btn2" type="button">Use demo route</button></div>
+      <div class="next-step">
+        <div class="label">Your next move</div>
+        <strong id="nextStepTitle">Planning your trip...</strong>
+        <p id="nextStepBody">As soon as the route is loaded, this box will tell you what to do first.</p>
+      </div>
+      <div class="summary">
+        <div class="trip-card"><div class="label">Total cost</div><div class="value" id="routeCost">-</div></div>
+        <div class="trip-card"><div class="label">Vehicle switches</div><div class="value" id="routeSwitches">-</div></div>
+        <div class="trip-card"><div class="label">Modes used</div><div class="value" id="routeModes">-</div></div>
+        <div class="trip-card"><div class="label">Compute time</div><div class="value" id="routeTime">-</div></div>
+      </div>
+    </div>
+
+    <div class="journey">
+      <div class="journey-grid">
+        <div class="panel" id="journey">
+          <p class="label">Step-by-step journey</p>
+          <h3>What vehicle to take and when to switch</h3>
+          <p>The journey cards below turn the route result into clear travel instructions for a real user.</p>
+          <div class="steps" id="journeySteps"></div>
+        </div>
+        <div class="panel">
+          <p class="label">Why this route</p>
+          <h3>Route explanation</h3>
+          <p id="routeSummaryText" class="small">Waiting for the live route result.</p>
+          <div class="proof-panel">
+            <div class="label">Live route JSON</div>
+            <pre id="routeResult">Loading sample route...</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" id="network">
+        <p class="label">Network context</p>
+        <h3>See the live graph behind your trip</h3>
+        <p>The map keeps the route grounded in the actual graph while staying readable for normal travelers.</p>
+        <div class="legend"><span class="normal">Normal roads</span><span class="goli">Goli corridors</span><span class="route">Current route</span><span class="overpass">Overpass nodes</span></div>
+        <div class="map-wrap"><svg id="graphSvg" viewBox="0 0 1100 620" preserveAspectRatio="xMidYMid meet" role="img" aria-label="GoliTransit live graph"></svg></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="footer"><strong>Need the technical proof?</strong> The full anomaly simulator, graph snapshot tools, and judge-oriented debugging interface are still available at <a href="/control-room">/control-room</a>.</section>
+</main>
+
+<script>
+  let currentGraph={nodes:[],edges:[]},currentRoute=null,endpointMode=null;
+  const startSelect=document.getElementById('start'),destinationSelect=document.getElementById('destination'),svg=document.getElementById('graphSvg');
+  function apiPaths(path){if(endpointMode==='prefixed')return [`/api${path}`];if(endpointMode==='plain')return [path];return [`/api${path}`,path]}
+  async function apiFetch(path,options={}){let lastError=null;for(const candidate of apiPaths(path)){try{const response=await fetch(candidate,options);if(response.status===404)continue;if(!endpointMode)endpointMode=candidate.startsWith('/api/')?'prefixed':'plain';return response}catch(error){lastError=error}}if(lastError)throw lastError;throw new Error(`No API endpoint matched for ${path}`)}
+  function projection(nodes){if(!nodes.length)return{};const lats=nodes.map((n)=>n.lat),lngs=nodes.map((n)=>n.lng),minLat=Math.min(...lats),maxLat=Math.max(...lats),minLng=Math.min(...lngs),maxLng=Math.max(...lngs),latSpan=maxLat-minLat||1,lngSpan=maxLng-minLng||1;return Object.fromEntries(nodes.map((node)=>[node.id,{x:80+((node.lng-minLng)/lngSpan)*920,y:560-((node.lat-minLat)/latSpan)*440,node}]))}
+  function routeEdgeIds(route){return !route||!Array.isArray(route.segments)?[]:route.segments.filter((s)=>s.edge_id).map((s)=>s.edge_id)}
+  function setStats(meta){document.getElementById('nodeCount').textContent=meta.node_count??'-';document.getElementById('edgeCount').textContent=meta.edge_count??'-';document.getElementById('goliEdgeCount').textContent=meta.goli_edge_count??'-';document.getElementById('overpassNodeCount').textContent=meta.overpass_node_count??'-';document.getElementById('networkNote').textContent=`${meta.edge_count??'-'} current links available across the live graph.`}
+  function populateSelects(){const options=currentGraph.nodes.map((node)=>`<option value="${node.id}">${node.name}</option>`).join('');startSelect.innerHTML=options;destinationSelect.innerHTML=options;if(!currentGraph.nodes.length)return;startSelect.value=currentGraph.nodes.find((n)=>n.id==='farmgate')?.id??currentGraph.nodes[0].id;destinationSelect.value=currentGraph.nodes.find((n)=>n.id==='gulshan_2')?.id??currentGraph.nodes[currentGraph.nodes.length-1].id}
+  function draw(){if(!currentGraph.nodes.length){svg.innerHTML='';return}const points=projection(currentGraph.nodes),activeRouteEdges=new Set(routeEdgeIds(currentRoute));
+    const edgesMarkup=currentGraph.edges.map((edge)=>{const from=points[edge.from],to=points[edge.to];if(!from||!to)return'';let stroke='rgba(15,36,51,.22)',width=1.4;if(edge.is_goli){stroke='rgba(31,169,113,.44)';width=2}if(activeRouteEdges.has(edge.id)){stroke='#1fa971';width=3.4}return `<line x1="${from.x}" y1="${from.y}" x2="${to.x}" y2="${to.y}" stroke="${stroke}" stroke-width="${width}" stroke-linecap="round"></line>`}).join('');
+    const nodesMarkup=currentGraph.nodes.map((node)=>{const point=points[node.id],fill=node.type==='overpass'?'#d89d23':'#0f2433',radius=node.type==='hub'?7:5;return `<g><circle cx="${point.x}" cy="${point.y}" r="${radius+4}" fill="rgba(29,180,231,.08)"></circle><circle cx="${point.x}" cy="${point.y}" r="${radius}" fill="${fill}" stroke="#f7fbff" stroke-width="2"></circle><text x="${point.x+10}" y="${point.y-8}" fill="#274155" font-size="11" font-weight="700">${node.name}</text></g>`}).join('');
+    svg.innerHTML=edgesMarkup+nodesMarkup}
+  function modeClass(mode){return mode==='car'?'car':mode==='rickshaw'?'rickshaw':mode==='walk'?'walk':'switch'}
+  function renderSteps(route){const container=document.getElementById('journeySteps');if(!route||!Array.isArray(route.segments)||!route.segments.length){container.innerHTML='<div class="step"><div class="step-num">?</div><div><strong>No route steps yet.</strong><div class="small">Run the planner to generate instructions.</div></div></div>';return}
+    container.innerHTML=route.segments.map((segment,index)=>{const switched=segment.switch_penalty>0;const action=segment.mode==='walk'?'Walk':segment.mode==='rickshaw'?'Ride a rickshaw':'Take a car';const text=`${action} from ${segment.from} to ${segment.to}.`;const extra=switched?`Switch vehicles at ${segment.from} before continuing.`:'Continue on the same mode.';return `<div class="step"><div class="step-num">${index+1}</div><div><div class="chips"><span class="mode-badge ${modeClass(segment.mode)}">${segment.mode}</span>${switched?'<span class="mode-badge switch">switch</span>':''}</div><p style="margin:10px 0 0;font-weight:700">${text}</p><div class="small">${extra} Segment cost: ${segment.cost}.</div></div></div>`}).join('')}
+  function updateRoute(route){document.getElementById('routeResult').textContent=JSON.stringify({data:route},null,2);document.getElementById('routeCost').textContent=route?.total_cost??'-';document.getElementById('routeSwitches').textContent=route?.switches??'-';document.getElementById('routeModes').textContent=Array.isArray(route?.selected_modes)&&route.selected_modes.length?route.selected_modes.join(', '):'-';document.getElementById('routeTime').textContent=route?.computation_time_ms!=null?`${route.computation_time_ms} ms`:'-';
+    const first=route?.segments?.[0];if(first){const action=first.mode==='walk'?'Walk now':first.mode==='rickshaw'?'Ride a rickshaw now':'Take a car now';document.getElementById('nextStepTitle').textContent=`${action} toward ${first.to}`;document.getElementById('nextStepBody').textContent=`Start from ${first.from} and continue to ${first.to}. ${route.switches?`This journey includes ${route.switches} vehicle switch${route.switches>1?'es':''}.`:'No vehicle switch is needed right away.'}`;}
+    document.getElementById('routeSummaryText').textContent=route?.justification?.summary??'Route generated from the live graph.';renderSteps(route);draw()}
+  async function refreshHealth(){try{const response=await fetch('/health',{headers:{Accept:'application/json'}});if(!response.ok)throw new Error();document.getElementById('healthValue').textContent='Live';document.getElementById('healthNote').textContent='Backend is responding from the deployed app.'}catch(error){document.getElementById('healthValue').textContent='Unavailable';document.getElementById('healthNote').textContent='The backend is not reachable right now.'}}
+  async function refreshSnapshot(){const response=await apiFetch('/graph/snapshot',{headers:{Accept:'application/json'}});if(!response.ok)throw new Error(`Snapshot request failed (${response.status})`);const snapshot=await response.json();currentGraph=snapshot.data??{nodes:[],edges:[]};setStats(snapshot.meta||{});populateSelects();draw()}
+  async function runRoute(){const selectedModes=Array.from(document.getElementById('modes').selectedOptions).map((option)=>option.value),payload={session_id:document.getElementById('sessionId').value||undefined,start:startSelect.value,destination:destinationSelect.value,allowed_modes:selectedModes};const response=await apiFetch('/route',{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify(payload)});const result=await response.json();if(!response.ok)throw new Error(`Route request failed (${response.status})`);currentRoute=result.data;updateRoute(result.data)}
+  function loadDemo(){startSelect.value='farmgate';destinationSelect.value='gulshan_2';document.getElementById('sessionId').value='traveler-demo-route'}
+  document.getElementById('routeBtn').addEventListener('click',async()=>{try{await runRoute()}catch(error){document.getElementById('routeResult').textContent='Failed to compute route: '+error.message}});
+  document.getElementById('sampleBtn').addEventListener('click',loadDemo);
+  (async function init(){await refreshHealth();try{await refreshSnapshot();loadDemo();await runRoute()}catch(error){document.getElementById('routeResult').textContent='Failed to load traveler planner: '+error.message;document.getElementById('routeSummaryText').textContent='The planner could not load the live graph yet. Open /control-room for raw debugging tools.';renderSteps(null)}})();
+</script>
+</body>
+</html>
