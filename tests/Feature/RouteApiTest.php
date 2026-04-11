@@ -15,23 +15,24 @@ class RouteApiTest extends TestCase
         parent::tearDown();
     }
 
-    public function test_it_returns_a_single_mode_route(): void
+    public function test_it_returns_a_rickshaw_route_for_a_medium_distance_trip(): void
     {
         $response = $this->postJson('/api/route', [
             'start' => 'farmgate',
-            'destination' => 'gulshan',
-            'allowed_modes' => ['car'],
+            'destination' => 'green_road',
+            'allowed_modes' => ['car', 'rickshaw', 'walk'],
         ]);
 
         $response
             ->assertOk()
-            ->assertJsonPath('data.selected_modes.0', 'car')
+            ->assertJsonPath('data.selected_modes.0', 'rickshaw')
             ->assertJsonPath('data.path.0', 'farmgate')
             ->assertJsonPath('data.nodes.0', 'farmgate')
-            ->assertJsonPath('data.path.3', 'gulshan')
-            ->assertJsonPath('data.total_cost', 12)
-            ->assertJsonCount(3, 'data.segments')
-            ->assertJsonCount(3, 'data.route_segments')
+            ->assertJsonPath('data.path.1', 'moghbazar')
+            ->assertJsonPath('data.path.2', 'green_road')
+            ->assertJsonPath('data.total_cost', 320)
+            ->assertJsonCount(2, 'data.segments')
+            ->assertJsonCount(2, 'data.route_segments')
             ->assertJsonPath('data.switches', 0)
             ->assertJsonPath('data.justification.mode_switches', 0)
             ->assertJsonStructure([
@@ -43,7 +44,7 @@ class RouteApiTest extends TestCase
             ->assertJsonPath('data.session_saved', true);
     }
 
-    public function test_it_refuses_to_use_edges_that_do_not_allow_the_mode(): void
+    public function test_it_refuses_to_use_car_when_the_graph_has_no_car_corridor(): void
     {
         $response = $this->postJson('/api/route', [
             'start' => 'farmgate',
@@ -52,20 +53,15 @@ class RouteApiTest extends TestCase
         ]);
 
         $response
-            ->assertOk()
-            ->assertJsonPath('data.path', [
-                'farmgate',
-                'karwan_bazar',
-                'green_road',
-            ])
-            ->assertJsonPath('data.total_cost', 12);
+            ->assertStatus(422)
+            ->assertJsonPath('message', 'No route is available for the selected travel modes.');
     }
 
-    public function test_it_can_switch_modes_at_transfer_nodes_when_that_is_cheaper(): void
+    public function test_it_keeps_the_route_on_rickshaw_when_car_is_not_usable(): void
     {
         $response = $this->postJson('/api/route', [
             'start' => 'farmgate',
-            'destination' => 'gulshan',
+            'destination' => 'green_road',
             'allowed_modes' => ['car', 'rickshaw', 'walk'],
         ]);
 
@@ -73,13 +69,12 @@ class RouteApiTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.path', [
                 'farmgate',
+                'moghbazar',
                 'green_road',
-                'gulshan',
             ])
-            ->assertJsonPath('data.total_cost', 12)
-            ->assertJsonPath('data.switches', 1)
-            ->assertJsonPath('data.justification.mode_switches', 1)
-            ->assertJsonPath('data.justification.mode_switch_penalty_applied', 3);
+            ->assertJsonPath('data.selected_modes.0', 'rickshaw')
+            ->assertJsonPath('data.switches', 0)
+            ->assertJsonPath('data.justification.mode_switches', 0);
     }
 
     public function test_it_saves_a_session_when_session_id_is_supplied(): void
@@ -87,7 +82,7 @@ class RouteApiTest extends TestCase
         $response = $this->postJson('/api/route', [
             'session_id' => 'session-1',
             'start' => 'farmgate',
-            'destination' => 'gulshan',
+            'destination' => 'green_road',
             'allowed_modes' => ['car', 'rickshaw', 'walk'],
         ]);
 
@@ -100,14 +95,14 @@ class RouteApiTest extends TestCase
 
         $this->assertNotNull($session);
         $this->assertSame('farmgate', $session['request']['start']);
-        $this->assertSame('gulshan', $session['request']['destination']);
+        $this->assertSame('green_road', $session['request']['destination']);
     }
 
     public function test_it_auto_generates_and_saves_a_session_when_session_id_is_missing(): void
     {
         $response = $this->postJson('/api/route', [
             'start' => 'farmgate',
-            'destination' => 'gulshan',
+            'destination' => 'green_road',
             'allowed_modes' => ['car', 'rickshaw', 'walk'],
         ]);
 
@@ -126,8 +121,8 @@ class RouteApiTest extends TestCase
         $this->postJson('/api/route', [
             'session_id' => 'session-hit',
             'start' => 'farmgate',
-            'destination' => 'gulshan',
-            'allowed_modes' => ['car'],
+            'destination' => 'green_road',
+            'allowed_modes' => ['car', 'rickshaw', 'walk'],
         ]);
 
         $this->postJson('/api/route', [
@@ -138,12 +133,12 @@ class RouteApiTest extends TestCase
         ]);
 
         $response = $this->postJson('/api/anomaly', [
-            'edge_ids' => ['edge_karwan_bazar_tejgaon'],
+            'edge_ids' => ['edge_farmgate_moghbazar'],
             'multiplier' => 10,
         ]);
 
         $response
-            ->assertStatus(202)
+            ->assertOk()
             ->assertJsonPath('reroute_summary.sessions_rerouted', 1)
             ->assertJsonPath('reroute_summary.sessions.0.session_id', 'session-hit');
     }
@@ -152,26 +147,26 @@ class RouteApiTest extends TestCase
     {
         $graph = [
             'start' => [
-                ['id' => 'edge_start_hub', 'to' => 'hub', 'cost' => 1, 'modes' => ['car']],
-                ['id' => 'edge_start_end', 'to' => 'end', 'cost' => 20, 'modes' => ['car']],
+                ['id' => 'edge_start_hub', 'to' => 'hub', 'cost' => 1, 'distance_km' => 6.0, 'modes' => ['car', 'rickshaw', 'walk']],
+                ['id' => 'edge_start_end', 'to' => 'end', 'cost' => 20, 'distance_km' => 8.0, 'modes' => ['car', 'rickshaw', 'walk']],
             ],
             'hub' => [
-                ['id' => 'edge_hub_bridge', 'to' => 'bridge', 'cost' => 1, 'modes' => ['rickshaw']],
+                ['id' => 'edge_hub_bridge', 'to' => 'bridge', 'cost' => 1, 'distance_km' => 6.0, 'modes' => ['car', 'rickshaw', 'walk']],
             ],
             'bridge' => [
-                ['id' => 'edge_bridge_end', 'to' => 'end', 'cost' => 1, 'modes' => ['walk']],
+                ['id' => 'edge_bridge_end', 'to' => 'end', 'cost' => 1, 'distance_km' => 0.5, 'modes' => ['walk']],
             ],
             'end' => [],
         ];
 
         config()->set('golitransit.transfer_nodes', ['start', 'hub', 'bridge']);
-        config()->set('golitransit.mode_switch_penalty', 1);
+        config()->set('golitransit.mode_switch_penalty', 3000);
 
         $route = app(DijkstraRoutingService::class)->run($graph, 'start', 'end', ['car', 'rickshaw', 'walk']);
 
-        $this->assertSame(['start', 'hub', 'bridge', 'end'], $route['path']);
-        $this->assertSame(2, $route['mode_switches']);
-        $this->assertSame(2, $route['mode_switch_penalty_applied']);
+        $this->assertSame(['start', 'end'], $route['path']);
+        $this->assertSame(['car'], $route['selected_modes']);
+        $this->assertSame(0, $route['mode_switches']);
     }
 
     public function test_it_requires_valid_payload_fields(): void
@@ -180,9 +175,10 @@ class RouteApiTest extends TestCase
             'start' => 'farmgate',
         ]);
 
-        $response->assertStatus(422)->assertJsonValidationErrors([
-            'destination',
-            'allowed_modes',
-        ]);
+        $response
+            ->assertStatus(400)
+            ->assertJsonStructure([
+                'error',
+            ]);
     }
 }

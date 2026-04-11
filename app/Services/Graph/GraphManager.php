@@ -2,6 +2,7 @@
 
 namespace App\Services\Graph;
 
+use App\Services\Routing\TransportModePolicy;
 use RuntimeException;
 
 class GraphManager
@@ -19,17 +20,24 @@ class GraphManager
     {
         static::$graph = [
             'nodes' => $this->mapData->getNodes(),
-            'edges' => $this->mapData->getEdges(),
+            'edges' => array_map(
+                fn (array $edge): array => $this->applyAccessRules($edge),
+                $this->mapData->getEdges()
+            ),
         ];
     }
 
     public function getGraph(): array
     {
+        $this->refreshEdgeAccessRules();
+
         return static::$graph;
     }
 
     public function getAdjacencyGraph(): array
     {
+        $this->refreshEdgeAccessRules();
+
         $adjacency = [];
 
         foreach (static::$graph['nodes'] as $node) {
@@ -90,6 +98,7 @@ class GraphManager
             }
 
             $edge['current_weight'] = max(1, (int) round($edge['base_weight'] * $multiplier));
+            $edge = $this->applyAccessRules($edge);
             $affected[] = $edge;
         }
         unset($edge);
@@ -140,5 +149,30 @@ class GraphManager
         }
 
         return $matchingEdgeIds;
+    }
+
+    protected function refreshEdgeAccessRules(): void
+    {
+        if (static::$graph === null) {
+            return;
+        }
+
+        static::$graph['edges'] = array_map(
+            fn (array $edge): array => $this->applyAccessRules($edge),
+            static::$graph['edges']
+        );
+    }
+
+    protected function applyAccessRules(array $edge): array
+    {
+        $distance = (float) ($edge['distance_km'] ?? 0);
+        $modes = app(TransportModePolicy::class)->allowedModesForDistance($distance);
+
+        $edge['car_allowed'] = in_array('car', $modes, true);
+        $edge['rickshaw_allowed'] = in_array('rickshaw', $modes, true);
+        $edge['walk_allowed'] = true;
+        $edge['modes'] = $modes;
+
+        return $edge;
     }
 }
