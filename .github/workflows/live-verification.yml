@@ -6,16 +6,16 @@ on:
 jobs:
   verify-live-endpoints:
     runs-on: ubuntu-latest
-    env:
-      LIVE_BASE_URL: ${{ vars.LIVE_BASE_URL }}
 
     steps:
       - name: Ensure live URL is configured
         run: |
+          LIVE_BASE_URL="$(printf '%s' '${{ vars.LIVE_BASE_URL }}' | tr -d '\r' | xargs)"
           if [ -z "$LIVE_BASE_URL" ]; then
             echo "Repository variable LIVE_BASE_URL is not set."
             exit 1
           fi
+          echo "LIVE_BASE_URL=$LIVE_BASE_URL" >> "$GITHUB_ENV"
 
       - name: Verify health endpoint
         run: curl --fail --silent --show-error "$LIVE_BASE_URL/health"
