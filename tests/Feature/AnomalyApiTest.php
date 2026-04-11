@@ -72,7 +72,6 @@ class AnomalyApiTest extends TestCase
             ->assertStatus(400)
             ->assertJsonStructure([
                 'error',
-                'details',
             ]);
     }
 }

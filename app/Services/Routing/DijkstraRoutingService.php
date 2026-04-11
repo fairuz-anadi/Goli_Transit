@@ -2,10 +2,15 @@
 
 namespace App\Services\Routing;
 
+use App\Services\Routing\TransportModePolicy;
 use RuntimeException;
 
 class DijkstraRoutingService
 {
+    public function __construct(protected TransportModePolicy $policy)
+    {
+    }
+
     public function run(array $graph, string $start, string $end, array $modes): array
     {
         if (! isset($graph[$start])) {
@@ -21,26 +26,30 @@ class DijkstraRoutingService
         }
 
         $transferNodes = config('golitransit.transfer_nodes', []);
-        $switchPenalty = (int) config('golitransit.mode_switch_penalty', 3);
-        $distances = [];
+        $switchPenalty = $this->policy->switchPenalty();
+        $scores = [];
+        $actualTotals = [];
         $previous = [];
         $visited = [];
 
         foreach ($graph as $node => $_edges) {
             foreach ($modes as $mode) {
                 $stateKey = $this->stateKey($node, $mode);
-                $distances[$stateKey] = INF;
+                $scores[$stateKey] = INF;
+                $actualTotals[$stateKey] = INF;
                 $previous[$stateKey] = null;
                 $visited[$stateKey] = false;
             }
         }
 
         foreach ($modes as $mode) {
-            $distances[$this->stateKey($start, $mode)] = 0;
+            $startState = $this->stateKey($start, $mode);
+            $scores[$startState] = 0;
+            $actualTotals[$startState] = 0;
         }
 
         while (true) {
-            $currentState = $this->getClosestUnvisitedNode($distances, $visited);
+            $currentState = $this->getClosestUnvisitedNode($scores, $visited);
 
             if ($currentState === null) {
                 break;
@@ -56,15 +65,18 @@ class DijkstraRoutingService
 
                 $neighbor = $edge['to'];
                 $neighborState = $this->stateKey($neighbor, $currentMode);
-                $candidateDistance = $distances[$currentState] + $edge['cost'];
+                $candidateScore = $scores[$currentState] + $this->travelScore($edge, $currentMode);
+                $candidateActual = $actualTotals[$currentState] + $this->travelCost($edge);
 
-                if ($candidateDistance < $distances[$neighborState]) {
-                    $distances[$neighborState] = $candidateDistance;
+                if ($candidateScore < $scores[$neighborState]) {
+                    $scores[$neighborState] = $candidateScore;
+                    $actualTotals[$neighborState] = $candidateActual;
                     $previous[$neighborState] = [
                         'edge_id' => $edge['id'],
                         'node' => $currentNode,
                         'mode' => $currentMode,
-                        'cost' => $edge['cost'],
+                        'cost' => $this->travelCost($edge),
+                        'distance_km' => $edge['distance_km'] ?? null,
                         'switch_penalty' => 0,
                     ];
                 }
@@ -80,15 +92,18 @@ class DijkstraRoutingService
                 }
 
                 $nextState = $this->stateKey($currentNode, $nextMode);
-                $candidateDistance = $distances[$currentState] + $switchPenalty;
+                $candidateScore = $scores[$currentState] + $switchPenalty;
+                $candidateActual = $actualTotals[$currentState] + $switchPenalty;
 
-                if ($candidateDistance < $distances[$nextState]) {
-                    $distances[$nextState] = $candidateDistance;
+                if ($candidateScore < $scores[$nextState]) {
+                    $scores[$nextState] = $candidateScore;
+                    $actualTotals[$nextState] = $candidateActual;
                     $previous[$nextState] = [
                         'edge_id' => null,
                         'node' => $currentNode,
                         'mode' => $currentMode,
                         'cost' => 0,
+                        'distance_km' => 0,
                         'switch_penalty' => $switchPenalty,
                     ];
                 }
@@ -96,22 +111,23 @@ class DijkstraRoutingService
         }
 
         $bestEndState = null;
-        $bestEndDistance = INF;
+        $bestEndScore = INF;
 
         foreach ($modes as $mode) {
             $stateKey = $this->stateKey($end, $mode);
 
-            if ($distances[$stateKey] < $bestEndDistance) {
-                $bestEndDistance = $distances[$stateKey];
+            if ($scores[$stateKey] < $bestEndScore) {
+                $bestEndScore = $scores[$stateKey];
                 $bestEndState = $stateKey;
             }
         }
 
-        if ($bestEndState === null || $bestEndDistance === INF) {
+        if ($bestEndState === null || $bestEndScore === INF) {
             throw new RuntimeException('No route is available for the selected travel modes.');
         }
 
         $segments = $this->buildSegments($previous, $start, $bestEndState);
+        $actualTotalCost = $actualTotals[$bestEndState];
         $selectedModes = array_values(array_unique(array_map(
             static fn (array $segment): string => $segment['mode'],
             array_filter($segments, static fn (array $segment): bool => $segment['edge_id'] !== null)
@@ -120,7 +136,7 @@ class DijkstraRoutingService
         return [
             'path' => $this->buildPath($segments, $start),
             'segments' => $segments,
-            'total_cost' => $bestEndDistance,
+            'total_cost' => $actualTotalCost,
             'selected_modes' => $selectedModes,
             'mode_switches' => count(array_filter(
                 $segments,
@@ -191,6 +207,7 @@ class DijkstraRoutingService
                     'from' => $segment['node'],
                     'to' => $cursorNode,
                     'cost' => 0,
+                    'distance_km' => 0,
                     'mode' => $cursorMode,
                     'previous_mode' => $segment['mode'],
                     'switch_penalty' => $segment['switch_penalty'],
@@ -202,6 +219,7 @@ class DijkstraRoutingService
                     'from' => $segment['node'],
                     'to' => $cursorNode,
                     'cost' => $segment['cost'],
+                    'distance_km' => $segment['distance_km'] ?? null,
                     'mode' => $cursorMode,
                     'previous_mode' => $cursorMode,
                     'switch_penalty' => 0,
@@ -228,5 +246,15 @@ class DijkstraRoutingService
             'node' => $node,
             'mode' => $mode,
         ];
+    }
+
+    protected function travelCost(array $edge): int
+    {
+        return $this->policy->travelCost($edge);
+    }
+
+    protected function travelScore(array $edge, string $mode): int
+    {
+        return $this->policy->travelScore($edge, $mode);
     }
 }
