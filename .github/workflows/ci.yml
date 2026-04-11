@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - final
+      - dev-anadi
+      - main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  quality-checks:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, xml, ctype, json, tokenizer, dom, fileinfo
+          coverage: none
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Validate Composer configuration
+        run: composer validate --strict
+
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Prepare Laravel environment
+        run: |
+          cp .env.example .env
+          mkdir -p storage/framework/cache storage/framework/sessions storage/framework/testing storage/framework/views bootstrap/cache
+          php artisan key:generate --force
+
+      - name: PHP syntax lint
+        run: find app config routes tests -name "*.php" -print0 | xargs -0 -n1 php -l
+
+      - name: Verify route registration
+        run: php artisan route:list
+
+      - name: Run GoliTransit smoke check
+        run: php artisan golitransit:smoke-check
+
+      - name: Build frontend assets
+        run: npm run build

@@ -1,0 +1,42 @@
+name: Live Verification
+
+on:
+  workflow_dispatch:
+
+jobs:
+  verify-live-endpoints:
+    runs-on: ubuntu-latest
+    env:
+      LIVE_BASE_URL: ${{ vars.LIVE_BASE_URL }}
+
+    steps:
+      - name: Ensure live URL is configured
+        run: |
+          if [ -z "$LIVE_BASE_URL" ]; then
+            echo "Repository variable LIVE_BASE_URL is not set."
+            exit 1
+          fi
+
+      - name: Verify health endpoint
+        run: curl --fail --silent --show-error "$LIVE_BASE_URL/health"
+
+      - name: Verify graph snapshot endpoint
+        run: curl --fail --silent --show-error "$LIVE_BASE_URL/api/graph/snapshot"
+
+      - name: Verify route endpoint
+        run: |
+          STATUS=$(curl --silent --show-error --output route.json --write-out "%{http_code}" \
+            -X POST "$LIVE_BASE_URL/api/route" \
+            -H "Content-Type: application/json" \
+            -d '{"start":"farmgate","destination":"gulshan_2","allowed_modes":["car","rickshaw","walk"]}')
+          test "$STATUS" = "200"
+          cat route.json
+
+      - name: Verify anomaly endpoint
+        run: |
+          STATUS=$(curl --silent --show-error --output anomaly.json --write-out "%{http_code}" \
+            -X POST "$LIVE_BASE_URL/api/anomaly" \
+            -H "Content-Type: application/json" \
+            -d '{"edge_ids":["edge_karwan_bazar_tejgaon"],"multiplier":10}')
+          test "$STATUS" = "200"
+          cat anomaly.json
