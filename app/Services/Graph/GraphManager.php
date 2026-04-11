@@ -51,12 +51,20 @@ class GraphManager
                 'cost' => $edge['current_weight'],
                 'modes' => $edge['modes'],
                 'base_weight' => $edge['base_weight'],
+                'current_weight' => $edge['current_weight'],
                 'distance_km' => $edge['distance_km'],
                 'car_allowed' => $edge['car_allowed'],
+                'structural_car_allowed' => $edge['structural_car_allowed'] ?? $edge['car_allowed'],
                 'rickshaw_allowed' => $edge['rickshaw_allowed'],
+                'structural_rickshaw_allowed' => $edge['structural_rickshaw_allowed'] ?? $edge['rickshaw_allowed'],
                 'walk_allowed' => $edge['walk_allowed'],
+                'structural_walk_allowed' => $edge['structural_walk_allowed'] ?? $edge['walk_allowed'],
                 'is_goli' => $edge['is_goli'],
                 'is_overpass' => $edge['is_overpass'],
+                'preferred_mode' => $edge['preferred_mode'] ?? null,
+                'distance_band' => $edge['distance_band'] ?? null,
+                'anomaly_active' => $edge['anomaly_active'] ?? false,
+                'traffic_factor' => $edge['traffic_factor'] ?? 1,
             ];
         }
 
@@ -166,12 +174,26 @@ class GraphManager
     protected function applyAccessRules(array $edge): array
     {
         $distance = (float) ($edge['distance_km'] ?? 0);
-        $modes = app(TransportModePolicy::class)->allowedModesForDistance($distance);
+        $policy = app(TransportModePolicy::class);
+        $policyModes = $policy->allowedModesForDistance($distance);
+        $structuralModes = array_values(array_filter([
+            ($edge['structural_car_allowed'] ?? $edge['car_allowed'] ?? false) ? 'car' : null,
+            ($edge['structural_rickshaw_allowed'] ?? $edge['rickshaw_allowed'] ?? false) ? 'rickshaw' : null,
+            ($edge['structural_walk_allowed'] ?? $edge['walk_allowed'] ?? false) ? 'walk' : null,
+        ]));
+        $modes = array_values(array_intersect($policyModes, $structuralModes));
 
         $edge['car_allowed'] = in_array('car', $modes, true);
         $edge['rickshaw_allowed'] = in_array('rickshaw', $modes, true);
-        $edge['walk_allowed'] = true;
+        $edge['walk_allowed'] = in_array('walk', $modes, true);
         $edge['modes'] = $modes;
+        $edge['preferred_mode'] = $policy->preferredModeForDistance($distance);
+        $edge['distance_band'] = $policy->thresholdLabel($distance);
+        $edge['anomaly_active'] = (float) ($edge['current_weight'] ?? 1) > (float) ($edge['base_weight'] ?? 1);
+        $edge['traffic_factor'] = round(
+            max(1.0, (float) ($edge['current_weight'] ?? 1) / max(1.0, (float) ($edge['base_weight'] ?? 1))),
+            2
+        );
 
         return $edge;
     }

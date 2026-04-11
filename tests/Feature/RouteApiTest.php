@@ -33,8 +33,12 @@ class RouteApiTest extends TestCase
             ->assertJsonPath('data.total_cost', 320)
             ->assertJsonCount(2, 'data.segments')
             ->assertJsonCount(2, 'data.route_segments')
+            ->assertJsonCount(2, 'data.journey_cards')
             ->assertJsonPath('data.switches', 0)
             ->assertJsonPath('data.justification.mode_switches', 0)
+            ->assertJsonPath('data.justification.node_sequence.0', 'farmgate')
+            ->assertJsonPath('data.justification.segment_modes.0.mode', 'rickshaw')
+            ->assertJsonPath('data.justification.anomaly_checked', true)
             ->assertJsonStructure([
                 'data' => [
                     'session_id',
@@ -114,6 +118,38 @@ class RouteApiTest extends TestCase
 
         $this->assertNotEmpty($sessionId);
         $this->assertNotNull(app(SessionManager::class)->getSession($sessionId));
+    }
+
+    public function test_it_prefers_car_for_a_long_trip_when_the_full_corridor_is_car_accessible(): void
+    {
+        $response = $this->postJson('/api/route', [
+            'start' => 'farmgate',
+            'destination' => 'kuril',
+            'allowed_modes' => ['car', 'rickshaw', 'walk'],
+        ]);
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('data.selected_modes.0', 'car')
+            ->assertJsonPath('data.selected_modes.1', 'rickshaw')
+            ->assertJsonPath('data.switches', 1)
+            ->assertJsonPath('data.justification.segment_modes.0.mode', 'car');
+    }
+
+    public function test_it_switches_vehicle_on_a_long_city_trip_when_remaining_distance_drops(): void
+    {
+        $response = $this->postJson('/api/route', [
+            'start' => 'farmgate',
+            'destination' => 'mirpur_10',
+            'allowed_modes' => ['car', 'rickshaw', 'walk'],
+        ]);
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('data.selected_modes.0', 'car')
+            ->assertJsonPath('data.selected_modes.1', 'rickshaw')
+            ->assertJsonPath('data.switches', 1)
+            ->assertJsonPath('data.segments.3.type', 'mode_switch');
     }
 
     public function test_it_reroutes_only_impacted_sessions(): void

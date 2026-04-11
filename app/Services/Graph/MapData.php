@@ -2,8 +2,6 @@
 
 namespace App\Services\Graph;
 
-use App\Services\Routing\TransportModePolicy;
-
 class MapData
 {
     public function getNodes(): array
@@ -201,10 +199,8 @@ class MapData
         bool $rickshawAllowed,
         bool $walkAllowed,
         bool $isGoli = false,
-            bool $isOverpass = false
+        bool $isOverpass = false
     ): array {
-        $modes = $this->accessModesForDistance($distanceKm);
-
         return [
             'id' => $id,
             'from' => $from,
@@ -212,17 +208,19 @@ class MapData
             'base_weight' => $baseWeight,
             'current_weight' => $baseWeight,
             'distance_km' => $distanceKm,
-            'car_allowed' => in_array('car', $modes, true),
-            'rickshaw_allowed' => in_array('rickshaw', $modes, true),
-            'walk_allowed' => in_array('walk', $modes, true),
+            'car_allowed' => $carAllowed,
+            'rickshaw_allowed' => $rickshawAllowed,
+            'walk_allowed' => $walkAllowed,
+            'structural_car_allowed' => $carAllowed,
+            'structural_rickshaw_allowed' => $rickshawAllowed,
+            'structural_walk_allowed' => $walkAllowed,
             'is_goli' => $isGoli,
             'is_overpass' => $isOverpass,
-            'modes' => $modes,
+            'modes' => array_values(array_filter([
+                $carAllowed ? 'car' : null,
+                $rickshawAllowed ? 'rickshaw' : null,
+                $walkAllowed ? 'walk' : null,
+            ])),
         ];
-    }
-
-    protected function accessModesForDistance(float $distanceKm): array
-    {
-        return app(TransportModePolicy::class)->allowedModesForDistance($distanceKm);
     }
 }
