@@ -76,10 +76,10 @@ class RouteController extends Controller
                 'switches' => $route['mode_switches'],
                 'computation_time_ms' => $computationTimeMs,
                 'justification' => [
-                    'summary' => 'Best available route on the current demo graph using the selected travel modes.',
+                    'summary' => 'Best available route on the current demo graph using distance-based transport bands and the selected travel modes.',
                     'mode_switches' => $route['mode_switches'],
                     'mode_switch_penalty_applied' => $route['mode_switch_penalty_applied'],
-                    'note' => 'This is the Step A3 multi-modal routing baseline with designated transfer nodes and switch penalties.',
+                    'note' => 'This is the Step A3 multi-modal routing baseline with distance thresholds, designated transfer nodes, and switch penalties.',
                 ],
                 'session_saved' => true,
             ],

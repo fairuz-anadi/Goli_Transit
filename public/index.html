@@ -82,23 +82,28 @@
     .smart-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
     .smart-btn{cursor:pointer;min-height:40px;padding:0 14px;background:linear-gradient(180deg,#fbfdff,#eef6fb)}
     .smart-btn.warn{border-color:rgba(213,86,106,.18);background:linear-gradient(135deg,rgba(213,86,106,.12),rgba(216,157,35,.08))}
-    .map-wrap{position:relative;min-height:620px;border-radius:24px;overflow:hidden;border:1px solid var(--line);background:
-      radial-gradient(circle at 20% 18%, rgba(255,255,255,.7), transparent 22%),
-      linear-gradient(rgba(22,51,71,.06) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(22,51,71,.06) 1px, transparent 1px),
-      linear-gradient(180deg, #d9e9ee 0%, #eef5f9 100%);
-      background-size:auto,40px 40px,40px 40px,auto}
-    .map-wrap::before{content:"";position:absolute;inset:18px 22px 24px 18px;border-radius:20px;background:
-      radial-gradient(circle at 14% 28%, rgba(201,221,234,.9), transparent 10%),
-      radial-gradient(circle at 86% 18%, rgba(201,221,234,.85), transparent 11%),
-      radial-gradient(circle at 78% 78%, rgba(201,221,234,.8), transparent 12%);
-      opacity:.8;pointer-events:none}
-    .map-wrap::after{content:"";position:absolute;inset:10% auto auto 8%;width:38%;height:44%;border-radius:40% 60% 55% 45%/48% 42% 58% 52%;background:rgba(165,205,224,.35);filter:blur(2px);pointer-events:none}
-    svg{display:block;width:100%;height:620px}
-    .legend{display:flex;flex-wrap:wrap;gap:12px;margin:14px 0 0}.legend span{display:inline-flex;align-items:center;gap:8px;color:var(--muted);font-size:13px}.legend span::before{content:"";width:10px;height:10px;border-radius:50%;background:currentColor}.normal{color:rgba(15,36,51,.35)} .route{color:var(--green)} .goli{color:rgba(21,153,208,.72)} .overpass{color:var(--amber)}
-    .map-meta{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:16px 0 0}
-    .map-meta .brief-card{background:rgba(255,255,255,.82)}
-    .map-alert{margin-top:16px;padding:16px 18px;border-radius:22px;border:1px solid rgba(213,86,106,.16);background:linear-gradient(135deg,rgba(213,86,106,.08),rgba(216,157,35,.08))}
+    .map-wrap{position:relative;min-height:620px;border-radius:24px;overflow:hidden;border:1px solid rgba(15,36,51,.08);background:
+      linear-gradient(180deg,rgba(248,252,255,.98),rgba(236,244,248,.98)),
+      linear-gradient(rgba(22,51,71,.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(22,51,71,.035) 1px, transparent 1px);
+      background-size:auto,52px 52px,52px 52px;box-shadow:inset 0 1px 0 rgba(255,255,255,.7)}
+    .map-wrap::before{content:"";position:absolute;inset:14px;border-radius:20px;border:1px solid rgba(15,36,51,.05);pointer-events:none}
+    svg{display:block;width:100%;height:620px;background:
+      radial-gradient(circle at 50% 42%, rgba(21,153,208,.06), transparent 28%),
+      linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,0));touch-action:none;cursor:grab}
+    svg:active{cursor:grabbing}
+    .map-controls{position:absolute;top:16px;right:16px;z-index:2;display:flex;align-items:center;gap:8px;padding:8px;border-radius:16px;border:1px solid rgba(15,36,51,.08);background:rgba(255,255,255,.84);backdrop-filter:blur(10px);box-shadow:0 10px 26px rgba(10,33,54,.08)}
+    .zoom-btn{width:36px;height:36px;border-radius:12px;border:1px solid rgba(15,36,51,.08);background:linear-gradient(180deg,#fbfdff,#edf5fa);color:var(--ink);font-size:18px;font-weight:800;cursor:pointer}
+    .zoom-btn:hover{border-color:rgba(21,153,208,.24);box-shadow:0 8px 18px rgba(21,153,208,.12)}
+    .zoom-readout{min-width:64px;padding:0 10px;color:var(--muted);font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;text-align:center}
+    .map-panel-head{display:flex;justify-content:space-between;align-items:flex-end;gap:18px}
+    .map-panel-copy{margin:10px 0 0;max-width:780px;color:var(--muted);line-height:1.7;font-size:14px}
+    .legend{display:flex;flex-wrap:wrap;gap:10px;padding:10px 12px;margin:14px 0 0;border:1px solid rgba(15,36,51,.06);border-radius:18px;background:rgba(255,255,255,.6)}.legend span{display:inline-flex;align-items:center;gap:8px;color:var(--muted);font-size:12px;letter-spacing:.02em}.legend span::before{content:"";width:9px;height:9px;border-radius:50%;background:currentColor}.normal{color:rgba(15,36,51,.32)} .route{color:var(--green)} .goli{color:rgba(21,153,208,.72)} .overpass{color:var(--amber)}
+    .map-strip{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:14px 0 0}
+    .map-strip .brief-card{padding:14px 14px;border-radius:18px;background:rgba(255,255,255,.82);box-shadow:none}
+    .map-strip .brief-card strong{font-size:15px}
+    .map-strip .brief-card p{font-size:12px;line-height:1.55}
+    .map-alert{margin-top:12px;padding:14px 16px;border-radius:18px;border:1px solid rgba(213,86,106,.12);background:linear-gradient(135deg,rgba(213,86,106,.06),rgba(216,157,35,.06));box-shadow:none}
     .map-alert strong{display:block;font-size:15px}
     .map-alert p{margin:7px 0 0;color:var(--muted);font-size:13px;line-height:1.65}
     .small{font-size:13px;color:var(--muted);line-height:1.7}
@@ -112,8 +117,8 @@
     .route-tone strong{display:block;font-size:15px;margin-bottom:6px}
     .route-tone span{display:block;color:var(--muted);line-height:1.7}
     .footer{margin-top:18px;padding:14px 2px 2px;color:var(--muted);font-size:13px;line-height:1.7}.footer strong{color:var(--ink)}
-    @media (max-width:1120px){.hero,.layout,.highlights,.journey-grid,.explain-grid,.trip-brief,.map-meta,.insight-grid{grid-template-columns:1fr}.mode-picker{grid-template-columns:1fr}.bar{flex-direction:column;align-items:flex-start}.nav{justify-content:flex-start}}
-    @media (max-width:760px){.shell{width:min(100% - 18px,1280px)}.hero{padding:24px 18px}.map-wrap,svg{min-height:430px;height:430px}.summary{grid-template-columns:repeat(2,minmax(0,1fr))}.planner-top{flex-direction:column;align-items:flex-start}.next-step strong{max-width:100%}}
+    @media (max-width:1120px){.hero,.layout,.highlights,.journey-grid,.explain-grid,.trip-brief,.map-strip,.insight-grid{grid-template-columns:1fr}.mode-picker{grid-template-columns:1fr}.bar{flex-direction:column;align-items:flex-start}.nav{justify-content:flex-start}.map-panel-head{align-items:flex-start}.map-panel-copy{max-width:100%}}
+    @media (max-width:760px){.shell{width:min(100% - 18px,1280px)}.hero{padding:24px 18px}.map-wrap,svg{min-height:430px;height:430px}.summary{grid-template-columns:repeat(2,minmax(0,1fr))}.planner-top{flex-direction:column;align-items:flex-start}.next-step strong{max-width:100%}.map-strip{grid-template-columns:1fr}.legend{padding:8px 10px}}
   </style>
 </head>
 <body>
@@ -142,7 +147,7 @@
 
   <section class="highlights">
     <div class="story-card"><div class="label">Modes</div><div class="value" id="modeCount">3</div><p>Car, rickshaw, and walking in one journey plan.</p></div>
-    <div class="story-card"><div class="label">Live graph</div><div class="value" id="edgeCount">-</div><p>Current road links and weights from the deployed system.</p></div>
+    <div class="story-card"><div class="label">Live graph</div><div class="value" id="edgeCount">-</div><p>Current road links, distance bands, and traffic updates from the deployed system.</p></div>
     <div class="story-card"><div class="label">Goli support</div><div class="value" id="goliEdgeCount">-</div><p>Narrow streets where regular cars cannot pass.</p></div>
     <div class="story-card"><div class="label">Transfer points</div><div class="value" id="overpassNodeCount">-</div><p>Walk-heavy nodes and overpass-style switches.</p></div>
   </section>
@@ -160,7 +165,7 @@
         <div>
       <p class="label">Trip input</p>
       <h3>Find my best journey</h3>
-      <p>We combine the allowed modes, current road weights, and transfer rules to recommend a practical path.</p>
+      <p>We combine the allowed modes, road distance bands, and transfer rules to recommend a practical path.</p>
         </div>
         <div class="status-stack">
           <span class="mini-chip good" id="plannerState">Live route planner</span>
@@ -227,17 +232,29 @@
       </div>
 
       <div class="panel" id="network">
-        <p class="label">Network context</p>
-        <h3>See your route on a cleaner city-style map</h3>
-        <p>The view below is simplified for clarity, so travelers can focus on the route and transfer points instead of raw network structure.</p>
+        <div class="map-panel-head">
+          <div>
+            <p class="label">Network context</p>
+            <h3>See your route on a cleaner city-style map</h3>
+          </div>
+        </div>
+        <p class="map-panel-copy">The view below stays intentionally restrained. It keeps the route, transfer points, and corridor types visible without the extra decorative clutter that made the map harder to read.</p>
         <div class="legend"><span class="normal">Normal roads</span><span class="goli">Goli corridors</span><span class="route">Current route</span><span class="overpass">Overpass nodes</span></div>
-        <div class="map-meta">
+        <div class="map-strip">
           <div class="brief-card"><div class="label">Map reading tip</div><strong>Follow the green spine</strong><p>The bright green line is your current recommended path across the city.</p></div>
           <div class="brief-card"><div class="label">Local detail</div><strong>Dashed teal means goli access</strong><p>Those links are narrow corridors where smaller vehicles or walking work better.</p></div>
           <div class="brief-card"><div class="label">Transfer cue</div><strong>Amber nodes mark overpasses</strong><p>These are likely walking-heavy points where a change of mode can happen.</p></div>
         </div>
         <div class="map-alert"><strong id="mapAlertTitle">No disruption is active right now</strong><p id="mapAlertBody">If road pressure changes, this area will explain which corridor was affected and how the route responded.</p></div>
-        <div class="map-wrap"><svg id="graphSvg" viewBox="0 0 1100 620" preserveAspectRatio="xMidYMid meet" role="img" aria-label="GoliTransit live graph"></svg></div>
+        <div class="map-wrap">
+          <div class="map-controls" aria-label="Map zoom controls">
+            <button class="zoom-btn" id="zoomOutBtn" type="button" aria-label="Zoom out">−</button>
+            <div class="zoom-readout" id="zoomReadout">100%</div>
+            <button class="zoom-btn" id="zoomInBtn" type="button" aria-label="Zoom in">+</button>
+            <button class="zoom-btn" id="zoomResetBtn" type="button" aria-label="Reset zoom">↺</button>
+          </div>
+          <svg id="graphSvg" viewBox="0 0 1100 620" preserveAspectRatio="xMidYMid meet" role="img" aria-label="GoliTransit live graph"></svg>
+        </div>
       </div>
 
       <div class="insight-grid">
@@ -274,7 +291,7 @@
 </main>
 
 <script>
-  let currentGraph={nodes:[],edges:[]},currentRoute=null,previousRoute=null,endpointMode=null,selectedPreference='fastest',replayState={active:false,index:0};
+  let currentGraph={nodes:[],edges:[]},currentRoute=null,previousRoute=null,endpointMode=null,selectedPreference='fastest',replayState={active:false,index:0},zoomState={scale:1,panX:0,panY:0,dragging:false,startX:0,startY:0,startPanX:0,startPanY:0};
   const startSelect=document.getElementById('start'),destinationSelect=document.getElementById('destination'),svg=document.getElementById('graphSvg'),modeInputs=Array.from(document.querySelectorAll('input[name="allowed_mode"]')),preferenceButtons=Array.from(document.querySelectorAll('.pref-btn'));
   function apiPaths(path){if(endpointMode==='prefixed')return [`/api${path}`];if(endpointMode==='plain')return [path];return [`/api${path}`,path]}
   async function apiFetch(path,options={}){let lastError=null;for(const candidate of apiPaths(path)){try{const response=await fetch(candidate,options);if(response.status===404)continue;if(!endpointMode)endpointMode=candidate.startsWith('/api/')?'prefixed':'plain';return response}catch(error){lastError=error}}if(lastError)throw lastError;throw new Error(`No API endpoint matched for ${path}`)}
@@ -282,26 +299,34 @@
   function projection(nodes){if(!nodes.length)return{};const lats=nodes.map((n)=>n.lat),lngs=nodes.map((n)=>n.lng),minLat=Math.min(...lats),maxLat=Math.max(...lats),minLng=Math.min(...lngs),maxLng=Math.max(...lngs),latSpan=maxLat-minLat||1,lngSpan=maxLng-minLng||1;return Object.fromEntries(nodes.map((node)=>[node.id,{x:80+((node.lng-minLng)/lngSpan)*920,y:560-((node.lat-minLat)/latSpan)*440,node}]))}
   function routeEdgeIds(route){return !route||!Array.isArray(route.segments)?[]:route.segments.filter((s)=>s.edge_id).map((s)=>s.edge_id)}
   function prettyPlace(id){if(!id)return'';if(placeAliasMap[id])return placeAliasMap[id];const node=currentGraph.nodes.find((item)=>item.id===id);if(node?.name)return node.name;return String(id).replace(/_/g,' ').replace(/\b\w/g,(char)=>char.toUpperCase())}
+  function segmentDistance(segment){const value=segment?.distance_km;return typeof value==='number'&&Number.isFinite(value)?value:0}
+  function segmentVehicleLabel(mode){if(mode==='car')return'Car';if(mode==='rickshaw')return'Rickshaw';return'Walk'}
+  function clamp(value,min,max){return Math.min(max,Math.max(min,value))}
+  function svgPointFromClient(clientX,clientY){const rect=svg.getBoundingClientRect();const viewBox=svg.viewBox.baseVal;const scaleX=viewBox.width/rect.width;const scaleY=viewBox.height/rect.height;return{x:(clientX-rect.left)*scaleX,y:(clientY-rect.top)*scaleY}}
+  function setZoom(nextScale,focusX=550,focusY=310){const oldScale=zoomState.scale;const scale=clamp(nextScale,1,2.8);if(!Number.isFinite(scale)||scale===oldScale)return;const factor=scale/oldScale;zoomState.panX=focusX-factor*(focusX-zoomState.panX);zoomState.panY=focusY-factor*(focusY-zoomState.panY);zoomState.scale=scale;updateZoomReadout();draw()}
+  function resetZoom(){zoomState.scale=1;zoomState.panX=0;zoomState.panY=0;zoomState.dragging=false;updateZoomReadout();draw()}
+  function updateZoomReadout(){document.getElementById('zoomReadout').textContent=`${Math.round(zoomState.scale*100)}%`}
+  function segmentHeadline(segment){const fromName=prettyPlace(segment.from),toName=prettyPlace(segment.to),distance=segmentDistance(segment),longHop=distance>=1.2;if(segment.mode==='car')return`Take a car from ${fromName} to ${toName}.`;if(segment.mode==='rickshaw')return`Ride a rickshaw from ${fromName} to ${toName}.`;if(segment.mode==='walk')return longHop?`Use a short walking connector from ${fromName} to ${toName}.`:`Walk from ${fromName} to ${toName}.`;return`Move from ${fromName} to ${toName}.`}
+  function segmentReason(segment,index,route){const edge=currentGraph.edges.find((item)=>item.id===segment.edge_id);const distance=segmentDistance(segment)||edge?.distance_km||0;const longHop=distance>=1.2;if(segment.mode==='car')return longHop?'This longer main-road stretch is best handled by car right now.':'This keeps the journey fast on a clear road section.';if(segment.mode==='rickshaw')return longHop?'A rickshaw keeps the longer local corridor practical without unnecessary switching.':'This segment fits a tighter city corridor better than a larger vehicle.';if(segment.mode==='walk'&&edge?.is_overpass)return'Walking is required here because this link behaves like an overpass or final-access connection.';if(segment.mode==='walk'&&longHop&&(edge?.car_allowed||edge?.rickshaw_allowed))return'This is just a short walking connector inside a larger vehicle-based trip.';if(segment.mode==='walk')return'This part is short and simple to cover on foot, which keeps the route flexible.';if(segment.switch_penalty>0)return'The planner accepts a switch here because it improves the overall route under current conditions.';if((route?.switches||0)===0)return'This keeps the journey direct on a strong main-road section.';return'This segment is the fastest stable option before the next decision point.'}
   function setPreset(start,destination){if(startSelect.querySelector(`option[value="${start}"]`))startSelect.value=start;if(destinationSelect.querySelector(`option[value="${destination}"]`))destinationSelect.value=destination}
   function routeMood(route){const switches=route?.switches||0;const modes=Array.isArray(route?.selected_modes)?route.selected_modes.length:0;if(switches===0&&modes<=1)return{title:'Direct and simple',note:'You can stay on one mode the whole way based on current conditions.'};if(switches<=1)return{title:'One smooth transfer',note:'The route stays efficient with just a single planned change of vehicle.'};return{title:'Adaptive city journey',note:'This path uses multiple stages to stay practical under current road conditions.'}}
   function preferenceGuide(preference){if(preference==='least_switching')return'Least switching highlights routes that feel smoother and easier to follow.';if(preference==='walking_friendly')return'Walking friendly helps you notice where the route relies on overpasses or short access stretches.';if(preference==='low_complexity')return'Low complexity favors easy-to-understand journeys with fewer decision points.';return'Fastest mode keeps the route focused on speed under current graph conditions.'}
   function setPreference(preference){selectedPreference=preference;preferenceButtons.forEach((button)=>button.classList.toggle('active',button.dataset.preference===preference));document.getElementById('preferenceHint').textContent=preferenceGuide(preference);if(currentRoute)updateRoute(currentRoute)}
-  function segmentReason(segment,index,route){if(segment.mode==='walk'&&currentGraph.edges.find((edge)=>edge.id===segment.edge_id)?.is_overpass)return'Walking is required here because this stretch behaves like an overpass or final-access segment.';if(segment.mode==='rickshaw')return'This segment favors a smaller vehicle because it likely passes through tighter local corridors.';if(segment.mode==='walk')return'This part is short and simple to cover on foot, which keeps the route flexible.';if(segment.switch_penalty>0)return'The planner accepts a switch here because it improves the overall route under current conditions.';if((route?.switches||0)===0)return'This keeps the journey direct on a strong main-road section.';return'This segment is the fastest stable option before the next decision point.'}
-  function renderTimeline(route){const container=document.getElementById('timelineList');if(!route?.segments?.length){container.innerHTML='<div class="timeline-item"><strong>Waiting for route</strong><p>Once a route loads, this panel will turn it into a stage-by-stage story.</p></div>';return}container.innerHTML=route.segments.map((segment,index)=>`<div class="timeline-item"><strong>Stage ${index+1}: ${segment.mode==='car'?'Main-road car':segment.mode==='rickshaw'?'Rickshaw transfer':'Walking access'}</strong><p>${prettyPlace(segment.from)} to ${prettyPlace(segment.to)}. ${segmentReason(segment,index,route)}</p></div>`).join('')}
+  function renderTimeline(route){const container=document.getElementById('timelineList');if(!route?.segments?.length){container.innerHTML='<div class="timeline-item"><strong>Waiting for route</strong><p>Once a route loads, this panel will turn it into a stage-by-stage story.</p></div>';return}container.innerHTML=route.segments.map((segment,index)=>`<div class="timeline-item"><strong>Stage ${index+1}: ${segment.mode==='car'?'Car leg':segment.mode==='rickshaw'?'Rickshaw leg':'Walking connector'}</strong><p>${segmentHeadline(segment)} ${segmentReason(segment,index,route)}</p></div>`).join('')}
   function renderReasons(route){const container=document.getElementById('reasonList');if(!route?.segments?.length){container.innerHTML='<div class="reason-item"><strong>Waiting for route</strong><p>We will explain whether the segment favors speed, goli access, or walking-only movement.</p></div>';return}container.innerHTML=route.segments.slice(0,4).map((segment)=>`<div class="reason-item"><strong>${prettyPlace(segment.from)} to ${prettyPlace(segment.to)}</strong><p>${segmentReason(segment,0,route)}</p></div>`).join('')}
   function renderComparison(){const container=document.getElementById('changeList');if(!previousRoute||!currentRoute){container.innerHTML='<div class="change-item"><strong>No comparison yet</strong><p>When the route changes after a new plan or disruption, this panel will explain the difference.</p></div>';return}const oldPath=Array.isArray(previousRoute.path)?previousRoute.path.map((stop)=>prettyPlace(stop)).join(' -> '):'No earlier route';const newPath=Array.isArray(currentRoute.path)?currentRoute.path.map((stop)=>prettyPlace(stop)).join(' -> '):'No current route';const pathChanged=oldPath!==newPath;const costDelta=(currentRoute.total_cost??0)-(previousRoute.total_cost??0);container.innerHTML=`<div class="change-item"><strong>${pathChanged?'Route changed':'Route stayed similar'}</strong><p>Previous: ${oldPath}</p></div><div class="change-item"><strong>Current path</strong><p>${newPath}</p></div><div class="change-item"><strong>Impact summary</strong><p>Cost changed by ${costDelta>=0?'+':''}${costDelta}. Switches moved from ${previousRoute.switches??0} to ${currentRoute.switches??0}.</p></div>`}
   function setStats(meta){document.getElementById('nodeCount').textContent=meta.node_count??'-';document.getElementById('edgeCount').textContent=meta.edge_count??'-';document.getElementById('goliEdgeCount').textContent=meta.goli_edge_count??'-';document.getElementById('overpassNodeCount').textContent=meta.overpass_node_count??'-';document.getElementById('networkNote').textContent=`${meta.edge_count??'-'} current links available across the live graph.`}
   function populateSelects(){const options=currentGraph.nodes.map((node)=>`<option value="${node.id}">${node.name}</option>`).join('');startSelect.innerHTML=options;destinationSelect.innerHTML=options;if(!currentGraph.nodes.length)return;startSelect.value=currentGraph.nodes.find((n)=>n.id==='farmgate')?.id??currentGraph.nodes[0].id;destinationSelect.value=currentGraph.nodes.find((n)=>n.id==='gulshan_2')?.id??currentGraph.nodes[currentGraph.nodes.length-1].id}
-  function draw(){if(!currentGraph.nodes.length){svg.innerHTML='';return}const points=projection(currentGraph.nodes),allActiveRouteEdges=routeEdgeIds(currentRoute),activeRouteEdges=new Set(replayState.active?allActiveRouteEdges.slice(0,replayState.index):allActiveRouteEdges),routeNodeIds=new Set((currentRoute?.path||[]));
-    const districtMarkup=Object.values(points).map((point)=>`<circle cx="${point.x}" cy="${point.y}" r="36" fill="rgba(255,255,255,.32)"></circle>`).join('');
-    const waterMarkup='<path d="M180 510 C260 430, 390 420, 470 500 S690 600, 860 540" fill="none" stroke="rgba(120,181,214,.46)" stroke-width="38" stroke-linecap="round"></path><path d="M150 150 C250 120, 350 150, 430 220 S620 310, 800 250" fill="none" stroke="rgba(159,203,227,.28)" stroke-width="24" stroke-linecap="round"></path>';
-    const edgesMarkup=currentGraph.edges.map((edge)=>{const from=points[edge.from],to=points[edge.to];if(!from||!to)return'';let stroke='rgba(70,103,124,.32)',width=2.2,dash='';if(edge.is_goli){stroke='rgba(24,154,193,.82)';width=2.8;dash=' stroke-dasharray="6 8"'}if(activeRouteEdges.has(edge.id)){stroke='#18a85a';width=5.2}return `<line x1="${from.x}" y1="${from.y}" x2="${to.x}" y2="${to.y}" stroke="${stroke}" stroke-width="${width}" stroke-linecap="round"${dash}></line>`}).join('');
-    const routeGlowMarkup=currentGraph.edges.filter((edge)=>activeRouteEdges.has(edge.id)).map((edge)=>{const from=points[edge.from],to=points[edge.to];if(!from||!to)return'';return `<line x1="${from.x}" y1="${from.y}" x2="${to.x}" y2="${to.y}" stroke="rgba(27,156,106,.22)" stroke-width="12" stroke-linecap="round"></line>`}).join('');
-    const nodesMarkup=currentGraph.nodes.map((node)=>{const point=points[node.id],isActive=routeNodeIds.has(node.id),fill=node.type==='overpass'?'#d89d23':isActive?'#18a85a':'#163347',radius=node.type==='hub'?7:5;return `<g><circle cx="${point.x}" cy="${point.y}" r="${radius+6}" fill="${isActive?'rgba(27,156,106,.12)':'rgba(255,255,255,.42)'}"></circle><circle cx="${point.x}" cy="${point.y}" r="${radius}" fill="${fill}" stroke="#f7fbff" stroke-width="2"></circle><text x="${point.x+10}" y="${point.y-8}" fill="#274155" font-size="11" font-weight="700">${prettyPlace(node.id)}</text></g>`}).join('');
-    svg.innerHTML=waterMarkup+districtMarkup+routeGlowMarkup+edgesMarkup+nodesMarkup}
+  function draw(){if(!currentGraph.nodes.length){svg.innerHTML='';return}const points=projection(currentGraph.nodes),allActiveRouteEdges=routeEdgeIds(currentRoute),activeRouteEdges=new Set(replayState.active?allActiveRouteEdges.slice(0,replayState.index):allActiveRouteEdges),routeNodeIds=new Set((currentRoute?.path||[])),zoomLevel=zoomState.scale;
+    const labelMode=zoomLevel>=1.5?'all':zoomLevel>=1.18?'active':'key';
+    const edgesMarkup=currentGraph.edges.map((edge)=>{const from=points[edge.from],to=points[edge.to];if(!from||!to)return'';let stroke='rgba(70,103,124,.24)',width=1.9,dash='';if(edge.is_goli){stroke='rgba(24,154,193,.7)';width=2.3;dash=' stroke-dasharray="6 8"'}if(activeRouteEdges.has(edge.id)){stroke='#18a85a';width=4.8}return `<line vector-effect="non-scaling-stroke" x1="${from.x}" y1="${from.y}" x2="${to.x}" y2="${to.y}" stroke="${stroke}" stroke-width="${width}" stroke-linecap="round"${dash}></line>`}).join('');
+    const routeGlowMarkup=currentGraph.edges.filter((edge)=>activeRouteEdges.has(edge.id)).map((edge)=>{const from=points[edge.from],to=points[edge.to];if(!from||!to)return'';return `<line vector-effect="non-scaling-stroke" x1="${from.x}" y1="${from.y}" x2="${to.x}" y2="${to.y}" stroke="rgba(27,156,106,.12)" stroke-width="8" stroke-linecap="round"></line>`}).join('');
+    const nodesMarkup=currentGraph.nodes.map((node)=>{const point=points[node.id],isActive=routeNodeIds.has(node.id),isHub=node.type==='hub'||node.type==='transfer',fill=node.type==='overpass'?'#d89d23':isActive?'#18a85a':'#17384e',radius=node.type==='hub'?7:5;let showLabel=false;if(labelMode==='all')showLabel=true;else if(labelMode==='active')showLabel=isActive||isHub;else showLabel=isActive||node.type==='transfer'||node.type==='hub'||node.id==='farmgate'||node.id==='gulshan_2'||node.id==='kuril'||node.id==='moghbazar'||node.id==='badda';const labelY=point.y-12;const labelX=point.x+10;return `<g><circle cx="${point.x}" cy="${point.y}" r="${radius+5}" fill="${isActive?'rgba(27,156,106,.10)':'rgba(255,255,255,.28)'}"></circle><circle cx="${point.x}" cy="${point.y}" r="${radius}" fill="${fill}" stroke="#f7fbff" stroke-width="2"></circle>${showLabel?`<text x="${labelX}" y="${labelY}" fill="#244155" font-size="${zoomLevel>=1.5?11.5:zoomLevel>=1.18?10.8:10}" font-weight="700" style="paint-order:stroke;stroke:#f7fbff;stroke-width:3px;stroke-linejoin:round">${prettyPlace(node.id)}</text>`:''}</g>`}).join('');
+    const transform=`translate(${zoomState.panX} ${zoomState.panY}) scale(${zoomState.scale})`;
+    svg.innerHTML=`<g transform="${transform}">${routeGlowMarkup}${edgesMarkup}${nodesMarkup}</g>`}
   function modeClass(mode){return mode==='car'?'car':mode==='rickshaw'?'rickshaw':mode==='walk'?'walk':'switch'}
   function renderSteps(route){const container=document.getElementById('journeySteps');if(!route||!Array.isArray(route.segments)||!route.segments.length){container.innerHTML='<div class="step"><div class="step-num">?</div><div><strong>No route steps yet.</strong><div class="small">Run the planner to generate instructions.</div></div></div>';return}
-    container.innerHTML=route.segments.map((segment,index)=>{const switched=segment.switch_penalty>0;const action=segment.mode==='walk'?'Walk':segment.mode==='rickshaw'?'Ride a rickshaw':'Take a car';const fromName=prettyPlace(segment.from),toName=prettyPlace(segment.to);const text=`${action} from ${fromName} to ${toName}.`;const extra=switched?`Switch vehicles at ${fromName} before continuing.`:'Continue on the same mode.';return `<div class="step"><div class="step-num">${index+1}</div><div><div class="chips"><span class="mode-badge ${modeClass(segment.mode)}">${segment.mode}</span>${switched?'<span class="mode-badge switch">switch</span>':''}</div><p style="margin:10px 0 0;font-weight:700">${text}</p><div class="small">${extra} Segment cost: ${segment.cost}.</div></div></div>`}).join('')}
+    container.innerHTML=route.segments.map((segment,index)=>{const switched=segment.switch_penalty>0;const fromName=prettyPlace(segment.from),toName=prettyPlace(segment.to);const text=segmentHeadline(segment);const extra=switched?`Switch vehicles at ${fromName} before continuing.`:'Continue on the same mode.';const distance=segmentDistance(segment);const distanceText=distance?` - ${distance.toFixed(1)} km` : '';return `<div class="step"><div class="step-num">${index+1}</div><div><div class="chips"><span class="mode-badge ${modeClass(segment.mode)}">${segmentVehicleLabel(segment.mode)}</span>${switched?'<span class="mode-badge switch">switch</span>':''}</div><p style="margin:10px 0 0;font-weight:700">${text}</p><div class="small">${extra} Segment cost: ${segment.cost}${distanceText}</div></div></div>`}).join('')}
   function updateRoute(route){document.getElementById('routeCost').textContent=route?.total_cost??'-';document.getElementById('routeSwitches').textContent=route?.switches??'-';document.getElementById('routeModes').textContent=Array.isArray(route?.selected_modes)&&route.selected_modes.length?route.selected_modes.join(', '):'-';document.getElementById('routeTime').textContent=route?.computation_time_ms!=null?`${route.computation_time_ms} ms`:'-';
     const first=route?.segments?.[0];if(first){const action=first.mode==='walk'?'Walk now':first.mode==='rickshaw'?'Ride a rickshaw now':'Take a car now';const fromName=prettyPlace(first.from),toName=prettyPlace(first.to);document.getElementById('nextStepTitle').textContent=`${action} toward ${toName}`;document.getElementById('nextStepBody').textContent=`Start from ${fromName} and continue to ${toName}. ${route.switches?`This journey includes ${route.switches} vehicle switch${route.switches>1?'es':''}.`:'No vehicle switch is needed right away.'}`;}
     document.getElementById('tripBoard').textContent=prettyPlace(route?.segments?.[0]?.from||route?.start);
@@ -310,9 +335,9 @@
     document.getElementById('routeSummaryText').textContent=route?.justification?.summary??'Route generated from the live graph.';
     const pathNames=Array.isArray(route?.path)&&route.path.length?route.path.map((stop)=>prettyPlace(stop)).join(' -> '):'';
     document.getElementById('bestChoiceTitle').textContent=selectedPreference==='least_switching'?'Best current option: smoothest route':selectedPreference==='walking_friendly'?'Best current option: walking-aware journey':selectedPreference==='low_complexity'?'Best current option: low-complexity path':route?.selected_modes?.length===1?`Best current option: ${route.selected_modes[0]}`:'Best current option: mixed journey';
-    document.getElementById('bestChoiceBody').textContent=pathNames?`This path follows ${pathNames}. It avoids less suitable links based on the current graph weights, your allowed travel modes, and your selected travel preference.`:'The system is analyzing the most practical path right now.';
+    document.getElementById('bestChoiceBody').textContent=pathNames?`This path follows ${pathNames}. It is chosen by the shortest available graph cost across your allowed travel modes, while still respecting transfer nodes, overpasses, and walk-only links.`:'The system is analyzing the most practical path right now.';
     const switchSegments=Array.isArray(route?.segments)?route.segments.filter((segment)=>segment.switch_penalty>0):[];
-    if(switchSegments.length){const switchAt=prettyPlace(switchSegments[0].from);document.getElementById('switchGuideTitle').textContent=`Switch at ${switchAt}`;document.getElementById('switchGuideBody').textContent=`Your first vehicle change happens at ${switchAt}. After that point, continue by ${switchSegments[0].mode}.`;document.getElementById('routeToneText').textContent=`This trip starts simply, but you will need to switch later at ${switchAt} to stay on the best current route.`;}else{document.getElementById('switchGuideTitle').textContent='No switch needed';document.getElementById('switchGuideBody').textContent='This route can be completed without changing to another vehicle type.';document.getElementById('routeToneText').textContent='This is a straightforward journey. You can stay on the same travel mode the whole way based on current conditions.';}
+    if(switchSegments.length){const switchAt=prettyPlace(switchSegments[0].from);document.getElementById('switchGuideTitle').textContent=`Switch at ${switchAt}`;document.getElementById('switchGuideBody').textContent=`Your first vehicle change happens at ${switchAt}. After that point, continue by ${switchSegments[0].mode}.`;document.getElementById('routeToneText').textContent=`This trip starts simply, but you will need to switch later at ${switchAt} to stay on the shortest current route.`;}else{const dominantMode=route?.selected_modes?.[0]||'car';document.getElementById('switchGuideTitle').textContent='No switch needed';document.getElementById('switchGuideBody').textContent=`This route can be completed without changing to another vehicle type. The trip is currently shortest with ${dominantMode}.`;document.getElementById('routeToneText').textContent=`This is a straightforward journey. You can stay on ${dominantMode} based on current conditions.`;}
     const confidence=Math.max(55,Math.min(96,92-(route?.switches||0)*10));
     document.getElementById('confidenceFill').style.width=`${confidence}%`;
     document.getElementById('confidenceText').textContent=`${confidence}% confidence based on current conditions, route clarity, and the number of transfers required.`;
@@ -328,6 +353,16 @@
   document.querySelectorAll('.preset-btn').forEach((button)=>button.addEventListener('click',()=>{setPreset(button.dataset.start,button.dataset.destination);document.getElementById('plannerState').textContent='Preset loaded'}));
   preferenceButtons.forEach((button)=>button.addEventListener('click',()=>setPreference(button.dataset.preference)));
   document.getElementById('replayBtn').addEventListener('click',()=>{if(!currentRoute?.segments?.length)return;replayState={active:true,index:0};draw();const total=currentRoute.segments.length;let step=0;const timer=setInterval(()=>{step+=1;replayState.index=step;draw();if(step>=total){clearInterval(timer);replayState.active=false;draw();}},520)});
+  document.getElementById('zoomInBtn').addEventListener('click',()=>setZoom(zoomState.scale*1.2));
+  document.getElementById('zoomOutBtn').addEventListener('click',()=>setZoom(zoomState.scale/1.2));
+  document.getElementById('zoomResetBtn').addEventListener('click',resetZoom);
+  svg.addEventListener('wheel',(event)=>{if(!currentGraph.nodes.length)return;event.preventDefault();const delta=event.deltaY>0?-0.12:0.12;const focus=svgPointFromClient(event.clientX,event.clientY);setZoom(zoomState.scale*(1+delta),focus.x,focus.y)},{passive:false});
+  svg.addEventListener('pointerdown',(event)=>{if(event.button!==0)return;zoomState.dragging=true;zoomState.startX=event.clientX;zoomState.startY=event.clientY;zoomState.startPanX=zoomState.panX;zoomState.startPanY=zoomState.panY;svg.setPointerCapture(event.pointerId)});
+  svg.addEventListener('pointermove',(event)=>{if(!zoomState.dragging)return;const rect=svg.getBoundingClientRect();const viewBox=svg.viewBox.baseVal;const scaleX=viewBox.width/rect.width;const scaleY=viewBox.height/rect.height;zoomState.panX=zoomState.startPanX+(event.clientX-zoomState.startX)*scaleX;zoomState.panY=zoomState.startPanY+(event.clientY-zoomState.startY)*scaleY;draw()});
+  function endDrag(event){if(!zoomState.dragging)return;zoomState.dragging=false;try{svg.releasePointerCapture(event.pointerId)}catch(error){}}
+  svg.addEventListener('pointerup',endDrag);
+  svg.addEventListener('pointercancel',endDrag);
+  svg.addEventListener('dblclick',resetZoom);
   document.getElementById('simulateBtn').addEventListener('click',async()=>{if(!currentRoute?.segments?.length)return;const activeEdges=currentRoute.segments.map((segment)=>segment.edge_id).filter(Boolean).slice(0,2);try{await apiFetch('/anomaly',{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify({edge_ids:activeEdges.length?activeEdges:['edge_karwan_bazar_tejgaon'],multiplier:8})});document.getElementById('mapAlertTitle').textContent='A live disruption was simulated';document.getElementById('mapAlertBody').textContent=`Pressure was added to ${activeEdges.length?activeEdges.join(', '):'a key corridor'}. Re-planning now shows how the route reacts.`;await runRoute();}catch(error){document.getElementById('mapAlertTitle').textContent='Disruption simulation failed';document.getElementById('mapAlertBody').textContent='The route could not be refreshed after simulating a live disruption.';}});
   document.getElementById('routeBtn').addEventListener('click',async()=>{try{await runRoute()}catch(error){document.getElementById('routeSummaryText').textContent='We could not compute a trip right now.';document.getElementById('bestChoiceTitle').textContent='Route unavailable';document.getElementById('bestChoiceBody').textContent='Please try again or adjust the selected travel modes.';document.getElementById('switchGuideTitle').textContent='No guidance yet';document.getElementById('switchGuideBody').textContent='A route is needed before switch guidance can be shown.';document.getElementById('confidenceFill').style.width='0%';document.getElementById('confidenceText').textContent='Trip confidence will appear after a route is found.';document.getElementById('routeToneText').textContent='Once a route is available, this area will explain whether you can stay on one mode or need to switch later.';document.getElementById('journeyRailTitle').textContent='Journey story';document.getElementById('journeyRailBody').textContent='After a route is generated, this strip will summarize the rhythm of the trip in one quick sentence.';document.getElementById('plannerState').textContent='Route unavailable';}});
   document.getElementById('sampleBtn').addEventListener('click',loadDemo);
