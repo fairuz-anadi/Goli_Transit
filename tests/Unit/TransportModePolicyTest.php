@@ -12,19 +12,19 @@ class TransportModePolicyTest extends TestCase
         $policy = app(TransportModePolicy::class);
 
         $this->assertSame(['walk'], $policy->allowedModesForDistance(0.5));
+        $this->assertSame(['walk'], $policy->allowedModesForDistance(0.8));
         $this->assertSame(['rickshaw', 'walk'], $policy->allowedModesForDistance(1.0));
-        $this->assertSame(['rickshaw', 'walk'], $policy->allowedModesForDistance(3.0));
-        $this->assertSame(['rickshaw', 'walk'], $policy->allowedModesForDistance(5.0));
-        $this->assertSame(['car', 'rickshaw', 'walk'], $policy->allowedModesForDistance(5.1));
+        $this->assertSame(['rickshaw', 'walk'], $policy->allowedModesForDistance(1.8));
+        $this->assertSame(['car', 'rickshaw', 'walk'], $policy->allowedModesForDistance(2.1));
     }
 
     public function test_it_prefers_higher_priority_modes_and_sets_a_switch_penalty(): void
     {
         $policy = app(TransportModePolicy::class);
 
-        $this->assertSame(0, $policy->modePriorityRank('car'));
-        $this->assertSame(1, $policy->modePriorityRank('rickshaw'));
-        $this->assertSame(2, $policy->modePriorityRank('walk'));
+        $this->assertSame('walk', $policy->preferredModeForDistance(0.4));
+        $this->assertSame('rickshaw', $policy->preferredModeForDistance(1.2));
+        $this->assertSame('car', $policy->preferredModeForDistance(2.3));
         $this->assertGreaterThan(0, $policy->switchPenalty());
     }
 
@@ -32,13 +32,18 @@ class TransportModePolicyTest extends TestCase
     {
         $policy = app(TransportModePolicy::class);
 
-        $cost = $policy->travelCost([
+        $carCost = $policy->travelCostForMode([
             'base_weight' => 4,
             'current_weight' => 8,
             'distance_km' => 2.5,
-        ]);
+        ], 'car');
+        $walkCost = $policy->travelCostForMode([
+            'base_weight' => 4,
+            'current_weight' => 8,
+            'distance_km' => 2.5,
+        ], 'walk');
 
-        $this->assertGreaterThan(0, $cost);
-        $this->assertGreaterThan(250, $cost);
+        $this->assertGreaterThan(0, $carCost);
+        $this->assertGreaterThan($walkCost, $carCost);
     }
 }

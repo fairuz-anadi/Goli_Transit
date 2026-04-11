@@ -14,31 +14,45 @@ class TransportModePolicy
 {
     public function thresholds(): array
     {
-        return config('golitransit.transport_distance_thresholds', [
-            'walk_only_max_km' => 1.0,
-            'rickshaw_max_km' => 5.0,
-            'car_min_km' => 5.0,
-        ]);
+        $thresholds = config('golitransit.transport_distance_thresholds', []);
+
+        return [
+            'walk_max_km' => (float) ($thresholds['walk_max_km'] ?? $thresholds['walk_only_max_km'] ?? 0.8),
+            'rickshaw_max_km' => (float) ($thresholds['rickshaw_max_km'] ?? 1.8),
+            'car_min_km' => (float) ($thresholds['car_min_km'] ?? 1.8),
+        ];
     }
 
     public function allowedModesForDistance(float $distanceKm): array
     {
         $distanceKm = max(0.0, $distanceKm);
         $thresholds = $this->thresholds();
-        $walkOnlyMax = (float) ($thresholds['walk_only_max_km'] ?? 1.0);
-        $rickshawMax = (float) ($thresholds['rickshaw_max_km'] ?? 5.0);
+        $walkMax = (float) ($thresholds['walk_max_km'] ?? 0.8);
+        $rickshawMax = (float) ($thresholds['rickshaw_max_km'] ?? 1.8);
 
-        if ($distanceKm < $walkOnlyMax) {
+        if ($distanceKm <= $walkMax) {
             return ['walk'];
         }
 
         if ($distanceKm <= $rickshawMax) {
-            // The original rules left a 3-5 km gap; we normalize it into the
-            // same medium band so rickshaw stays the practical option.
             return ['rickshaw', 'walk'];
         }
 
         return ['car', 'rickshaw', 'walk'];
+    }
+
+    public function preferredModeForDistance(float $distanceKm): string
+    {
+        return $this->allowedModesForDistance($distanceKm)[0];
+    }
+
+    public function thresholdLabel(float $distanceKm): string
+    {
+        return match ($this->preferredModeForDistance($distanceKm)) {
+            'walk' => 'short_connector',
+            'rickshaw' => 'medium_city_leg',
+            default => 'long_main_road_leg',
+        };
     }
 
     public function allowsCar(float $distanceKm): bool
@@ -85,13 +99,44 @@ class TransportModePolicy
      */
     public function travelCost(array $edge): int
     {
+        return $this->travelCostForMode($edge, null);
+    }
+
+    public function travelCostForMode(array $edge, ?string $mode): int
+    {
         $distanceKm = max(0.0, (float) ($edge['distance_km'] ?? 0));
         $baseWeight = max(1.0, (float) ($edge['base_weight'] ?? 1));
         $currentWeight = max(1.0, (float) ($edge['current_weight'] ?? $baseWeight));
         $trafficFactor = $currentWeight / $baseWeight;
-        $scaledDistance = $distanceKm * $this->routeCostScale() * $trafficFactor;
+        $scaledDistance = $distanceKm * $this->routeCostScale();
+        $modeTrafficFactor = $this->trafficFactorForMode($trafficFactor, $mode);
 
-        return max(1, (int) round($scaledDistance));
+        return max(1, (int) round($scaledDistance * $modeTrafficFactor));
+    }
+
+    public function trafficFactorForMode(float $trafficFactor, ?string $mode): float
+    {
+        $trafficFactor = max(1.0, $trafficFactor);
+
+        return match ($mode) {
+            'car' => $trafficFactor ** 2,
+            'rickshaw' => 1 + (($trafficFactor - 1) * 0.65),
+            'walk' => 1 + (($trafficFactor - 1) * 0.1),
+            default => $trafficFactor,
+        };
+    }
+
+    public function distancePreferencePenalty(array $edge, string $mode): int
+    {
+        $distanceKm = max(0.0, (float) ($edge['distance_km'] ?? 0));
+        $allowedModes = $this->allowedModesForDistance($distanceKm);
+        $rank = array_search($mode, $allowedModes, true);
+
+        if ($rank === false) {
+            return 10_000;
+        }
+
+        return $rank * 180;
     }
 
     /**
@@ -100,6 +145,8 @@ class TransportModePolicy
      */
     public function travelScore(array $edge, string $mode): int
     {
-        return $this->travelCost($edge) + ($this->modePriorityRank($mode) * $this->modePriorityPenalty());
+        return $this->travelCostForMode($edge, $mode)
+            + $this->distancePreferencePenalty($edge, $mode)
+            + ($this->modePriorityRank($mode) * 20);
     }
 }
