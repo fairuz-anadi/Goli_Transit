@@ -142,3 +142,18 @@ class GraphManager
         return $matchingEdgeIds;
     }
 }
+
+use App\Services\GoogleMaps\GoogleMapsService;
+
+$googleMaps = new GoogleMapsService();
+
+// Get live travel time for an edge
+$liveTime = $googleMaps->getLiveTrafficTime(
+    "23.8103,90.4125", // origin lat,lng (Dhaka node)
+    "23.7808,90.4201"  // destination lat,lng
+);
+
+// Use liveTime to inflate edge weight
+if ($liveTime) {
+    $edge['weight'] = $liveTime / 60; // convert seconds to minutes
+}

@@ -40,6 +40,20 @@ class MapData
         ];
     }
 
+    public function getNodeCoordinates(): array
+    {
+        $coordinates = [];
+
+        foreach ($this->getNodes() as $node) {
+            $coordinates[$node['name']] = [
+                'lat' => $node['lat'],
+                'lng' => $node['lng'],
+            ];
+        }
+
+        return $coordinates;
+    }
+
     public function getEdges(): array
     {
         return [
