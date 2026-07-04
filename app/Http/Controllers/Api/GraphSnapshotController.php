@@ -25,6 +25,7 @@ class GraphSnapshotController extends Controller
                 'edge_count' => count($edges),
                 'goli_edge_count' => count(array_filter($edges, fn (array $edge): bool => $edge['is_goli'])),
                 'overpass_node_count' => count(array_filter($nodes, fn (array $node): bool => $node['type'] === 'overpass')),
+                'vehicle_thresholds_km' => config('golitransit.transport_distance_thresholds'),
                 'note' => 'Snapshot of the current graph, including any anomaly-inflated current weights.',
             ],
         ]);
