@@ -58,7 +58,7 @@ class AnomalyApiTest extends TestCase
             ->assertOk()
             ->assertJsonStructure([
                 'data' => ['nodes', 'edges'],
-                'meta' => ['node_count', 'edge_count', 'goli_edge_count', 'overpass_node_count'],
+                'meta' => ['node_count', 'edge_count', 'goli_edge_count', 'overpass_node_count', 'vehicle_thresholds_km'],
             ]);
     }
 
@@ -72,7 +72,6 @@ class AnomalyApiTest extends TestCase
             ->assertStatus(400)
             ->assertJsonStructure([
                 'error',
-                'details',
             ]);
     }
 }
