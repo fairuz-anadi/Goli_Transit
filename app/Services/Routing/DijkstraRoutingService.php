@@ -2,56 +2,12 @@
 
 namespace App\Services\Routing;
 
-use App\Services\Routing\TransportModePolicy;
 use RuntimeException;
-use App\Services\GoogleMaps\GoogleMapsService;
 
 class DijkstraRoutingService
 {
-<<<<<<< HEAD
-    protected GoogleMapsService $googleMaps;
-
-    // Coordinates for your 30 Dhaka nodes
-    protected array $nodeCoordinates = [
-        'Mirpur'        => ['lat' => 23.8103, 'lng' => 90.4125],
-        'Dhanmondi'     => ['lat' => 23.7461, 'lng' => 90.3742],
-        'Gulshan'       => ['lat' => 23.7808, 'lng' => 90.4201],
-        'Banani'        => ['lat' => 23.7938, 'lng' => 90.4066],
-        'Uttara'        => ['lat' => 23.8759, 'lng' => 90.3795],
-        'Motijheel'     => ['lat' => 23.7330, 'lng' => 90.4182],
-        'Badda'         => ['lat' => 23.7799, 'lng' => 90.4346],
-        'Mohakhali'     => ['lat' => 23.7799, 'lng' => 90.4005],
-        'Farmgate'      => ['lat' => 23.7580, 'lng' => 90.3893],
-        'Shahbagh'      => ['lat' => 23.7393, 'lng' => 90.3957],
-        'Rampura'       => ['lat' => 23.7622, 'lng' => 90.4346],
-        'Khilgaon'      => ['lat' => 23.7388, 'lng' => 90.4290],
-        'Jatrabari'     => ['lat' => 23.7099, 'lng' => 90.4346],
-        'Demra'         => ['lat' => 23.7099, 'lng' => 90.4713],
-        'Tejgaon'       => ['lat' => 23.7614, 'lng' => 90.3933],
-        'Eskaton'       => ['lat' => 23.7461, 'lng' => 90.3957],
-        'Paltan'        => ['lat' => 23.7330, 'lng' => 90.4125],
-        'New Market'    => ['lat' => 23.7330, 'lng' => 90.3836],
-        'Azimpur'       => ['lat' => 23.7236, 'lng' => 90.3836],
-        'Lalbagh'       => ['lat' => 23.7196, 'lng' => 90.3893],
-        'Sadarghat'     => ['lat' => 23.7099, 'lng' => 90.4066],
-        'Kamalapur'     => ['lat' => 23.7236, 'lng' => 90.4236],
-        'Bashabo'       => ['lat' => 23.7461, 'lng' => 90.4346],
-        'Mugda'         => ['lat' => 23.7461, 'lng' => 90.4236],
-        'Malibagh'      => ['lat' => 23.7538, 'lng' => 90.4182],
-        'Shantinagar'   => ['lat' => 23.7388, 'lng' => 90.4125],
-        'Wari'          => ['lat' => 23.7196, 'lng' => 90.4125],
-        'Sutrapur'      => ['lat' => 23.7099, 'lng' => 90.3957],
-        'Kotwali'       => ['lat' => 23.7099, 'lng' => 90.4005],
-        'Hazaribagh'    => ['lat' => 23.7196, 'lng' => 90.3742],
-    ];
-
-    public function __construct()
-    {
-        $this->googleMaps = new GoogleMapsService();
-=======
     public function __construct(protected TransportModePolicy $policy)
     {
->>>>>>> origin/final
     }
 
     public function run(array $graph, string $start, string $end, array $modes): array
@@ -68,23 +24,7 @@ class DijkstraRoutingService
             throw new RuntimeException('At least one travel mode must be provided.');
         }
 
-        // Inflate edge costs with live Google Maps traffic data
-        $graph = $this->applyLiveTrafficWeights($graph, $modes);
-
         $transferNodes = config('golitransit.transfer_nodes', []);
-<<<<<<< HEAD
-        $switchPenalty = (int) config('golitransit.mode_switch_penalty', 3);
-        $distances = [];
-        $previous  = [];
-        $visited   = [];
-
-        foreach ($graph as $node => $_edges) {
-            foreach ($modes as $mode) {
-                $stateKey             = $this->stateKey($node, $mode);
-                $distances[$stateKey] = INF;
-                $previous[$stateKey]  = null;
-                $visited[$stateKey]   = false;
-=======
         $switchPenalty = $this->policy->switchPenalty();
         $scores = [];
         $actualTotals = [];
@@ -98,7 +38,6 @@ class DijkstraRoutingService
                 $actualTotals[$stateKey] = INF;
                 $previous[$stateKey] = null;
                 $visited[$stateKey] = false;
->>>>>>> origin/final
             }
         }
 
@@ -123,19 +62,6 @@ class DijkstraRoutingService
                     continue;
                 }
 
-<<<<<<< HEAD
-                $neighbor          = $edge['to'];
-                $neighborState     = $this->stateKey($neighbor, $currentMode);
-                $candidateDistance = $distances[$currentState] + $edge['cost'];
-
-                if ($candidateDistance < $distances[$neighborState]) {
-                    $distances[$neighborState] = $candidateDistance;
-                    $previous[$neighborState]  = [
-                        'edge_id'        => $edge['id'],
-                        'node'           => $currentNode,
-                        'mode'           => $currentMode,
-                        'cost'           => $edge['cost'],
-=======
                 $neighbor = $edge['to'];
                 $neighborState = $this->stateKey($neighbor, $currentMode);
                 $candidateScore = $scores[$currentState] + $this->travelScore($edge, $currentMode);
@@ -153,16 +79,16 @@ class DijkstraRoutingService
                         'base_weight' => $edge['base_weight'] ?? null,
                         'current_weight' => $edge['current_weight'] ?? null,
                         'traffic_factor' => $edge['traffic_factor'] ?? null,
+                        'modes' => $edge['modes'] ?? [],
                         'anomaly_active' => $edge['anomaly_active'] ?? false,
                         'car_allowed' => $edge['car_allowed'] ?? false,
-                        'structural_car_allowed' => $edge['structural_car_allowed'] ?? false,
-                        'structural_rickshaw_allowed' => $edge['structural_rickshaw_allowed'] ?? false,
-                        'structural_walk_allowed' => $edge['structural_walk_allowed'] ?? false,
+                        'structural_car_allowed' => $edge['structural_car_allowed'] ?? null,
+                        'structural_rickshaw_allowed' => $edge['structural_rickshaw_allowed'] ?? null,
+                        'structural_walk_allowed' => $edge['structural_walk_allowed'] ?? null,
                         'is_goli' => $edge['is_goli'] ?? false,
                         'is_overpass' => $edge['is_overpass'] ?? false,
->>>>>>> origin/final
                         'switch_penalty' => 0,
-                        'live_cost'      => $edge['live_cost'] ?? null,
+                        'live_cost' => $edge['live_cost'] ?? null,
                     ];
                 }
             }
@@ -176,18 +102,6 @@ class DijkstraRoutingService
                     continue;
                 }
 
-<<<<<<< HEAD
-                $nextState         = $this->stateKey($currentNode, $nextMode);
-                $candidateDistance = $distances[$currentState] + $switchPenalty;
-
-                if ($candidateDistance < $distances[$nextState]) {
-                    $distances[$nextState] = $candidateDistance;
-                    $previous[$nextState]  = [
-                        'edge_id'        => null,
-                        'node'           => $currentNode,
-                        'mode'           => $currentMode,
-                        'cost'           => 0,
-=======
                 $nextState = $this->stateKey($currentNode, $nextMode);
                 $candidateScore = $scores[$currentState] + $switchPenalty;
                 $candidateActual = $actualTotals[$currentState] + $switchPenalty;
@@ -201,34 +115,22 @@ class DijkstraRoutingService
                         'mode' => $currentMode,
                         'cost' => 0,
                         'distance_km' => 0,
->>>>>>> origin/final
                         'switch_penalty' => $switchPenalty,
-                        'live_cost'      => null,
+                        'live_cost' => null,
                     ];
                 }
             }
         }
 
-<<<<<<< HEAD
-        $bestEndState    = null;
-        $bestEndDistance = INF;
-=======
         $bestEndState = null;
         $bestEndScore = INF;
->>>>>>> origin/final
 
         foreach ($modes as $mode) {
             $stateKey = $this->stateKey($end, $mode);
 
-<<<<<<< HEAD
-            if ($distances[$stateKey] < $bestEndDistance) {
-                $bestEndDistance = $distances[$stateKey];
-                $bestEndState    = $stateKey;
-=======
             if ($scores[$stateKey] < $bestEndScore) {
                 $bestEndScore = $scores[$stateKey];
                 $bestEndState = $stateKey;
->>>>>>> origin/final
             }
         }
 
@@ -236,101 +138,37 @@ class DijkstraRoutingService
             throw new RuntimeException('No route is available for the selected travel modes.');
         }
 
-<<<<<<< HEAD
-        $segments      = $this->buildSegments($previous, $start, $bestEndState);
-=======
         $segments = $this->buildSegments($previous, $start, $bestEndState);
         $segments = $this->practicalizeJourneyModes($segments, $modes);
         $actualTotalCost = array_sum(array_map(
             static fn (array $segment): int => (int) (($segment['cost'] ?? 0) + ($segment['switch_penalty'] ?? 0)),
             $segments
         ));
->>>>>>> origin/final
         $selectedModes = array_values(array_unique(array_map(
             static fn (array $segment): string => $segment['mode'],
             array_filter($segments, static fn (array $segment): bool => $segment['edge_id'] !== null)
         )));
 
         return [
-<<<<<<< HEAD
-            'path'                         => $this->buildPath($segments, $start),
-            'segments'                     => $segments,
-            'total_cost'                   => $bestEndDistance,
-            'selected_modes'               => $selectedModes,
-            'mode_switches'                => count(array_filter(
-=======
             'path' => $this->buildPath($segments, $start),
             'segments' => $segments,
             'total_cost' => $actualTotalCost,
             'selected_modes' => $selectedModes,
             'mode_switches' => count(array_filter(
->>>>>>> origin/final
                 $segments,
                 static fn (array $segment): bool => $segment['edge_id'] === null
             )),
-            'mode_switch_penalty_applied'  => array_sum(array_map(
+            'mode_switch_penalty_applied' => array_sum(array_map(
                 static fn (array $segment): int => $segment['switch_penalty'],
                 $segments
             )),
-            'live_traffic_applied'         => true,
+            'live_traffic_applied' => false,
         ];
-    }
-
-    /**
-     * Fetch live traffic from Google Maps and inflate car edge costs.
-     */
-    protected function applyLiveTrafficWeights(array $graph, array $modes): array
-    {
-        // Only fetch live data if 'car' mode is requested
-        if (! in_array('car', $modes, true)) {
-            return $graph;
-        }
-
-        foreach ($graph as $fromNode => &$edges) {
-            foreach ($edges as &$edge) {
-                // Only inflate car edges
-                if (! in_array('car', $edge['modes'], true)) {
-                    continue;
-                }
-
-                $toNode = $edge['to'];
-
-                // Skip if coordinates not defined
-                if (
-                    ! isset($this->nodeCoordinates[$fromNode]) ||
-                    ! isset($this->nodeCoordinates[$toNode])
-                ) {
-                    continue;
-                }
-
-                $origin      = $this->nodeCoordinates[$fromNode]['lat'].','.$this->nodeCoordinates[$fromNode]['lng'];
-                $destination = $this->nodeCoordinates[$toNode]['lat'].','.$this->nodeCoordinates[$toNode]['lng'];
-
-                try {
-                    $liveSeconds = $this->googleMaps->getLiveTrafficTime($origin, $destination);
-
-                    if ($liveSeconds !== null) {
-                        $liveMinutes = round($liveSeconds / 60, 1);
-
-                        $edge['live_cost']     = $liveMinutes;
-                        $edge['original_cost'] = $edge['cost'];
-
-                        // Use live cost only if worse than original
-                        $edge['cost'] = max($edge['cost'], $liveMinutes);
-                    }
-                } catch (\Exception $e) {
-                    // Keep original cost if API call fails
-                    $edge['live_cost'] = null;
-                }
-            }
-        }
-
-        return $graph;
     }
 
     protected function getClosestUnvisitedNode(array $distances, array $visited): ?string
     {
-        $closestNode     = null;
+        $closestNode = null;
         $closestDistance = INF;
 
         foreach ($distances as $node => $distance) {
@@ -340,7 +178,7 @@ class DijkstraRoutingService
 
             if ($distance < $closestDistance) {
                 $closestDistance = $distance;
-                $closestNode     = $node;
+                $closestNode = $node;
             }
         }
 
@@ -364,11 +202,11 @@ class DijkstraRoutingService
 
     protected function buildSegments(array $previous, string $start, string $endState): array
     {
-        $segments    = [];
+        $segments = [];
         $cursorState = $endState;
 
         while ($cursorState !== null) {
-            ['node' => $cursorNode, 'mode' => $cursorMode] = $this->parseStateKey($cursorState);
+            ['node' => $cursorNode] = $this->parseStateKey($cursorState);
 
             if ($cursorNode === $start && ($previous[$cursorState] ?? null) === null) {
                 break;
@@ -382,14 +220,6 @@ class DijkstraRoutingService
 
             if ($segment['edge_id'] === null) {
                 array_unshift($segments, [
-<<<<<<< HEAD
-                    'edge_id'        => null,
-                    'from'           => $segment['node'],
-                    'to'             => $cursorNode,
-                    'cost'           => 0,
-                    'mode'           => $cursorMode,
-                    'previous_mode'  => $segment['mode'],
-=======
                     'edge_id' => null,
                     'from' => $segment['node'],
                     'to' => $cursorNode,
@@ -405,23 +235,14 @@ class DijkstraRoutingService
                     'structural_walk_allowed' => false,
                     'is_goli' => false,
                     'is_overpass' => false,
-                    'mode' => $cursorMode,
+                    'mode' => $this->parseStateKey($cursorState)['mode'],
                     'previous_mode' => $segment['mode'],
->>>>>>> origin/final
                     'switch_penalty' => $segment['switch_penalty'],
-                    'type'           => 'mode_switch',
-                    'live_cost'      => null,
+                    'type' => 'mode_switch',
+                    'live_cost' => null,
                 ]);
             } else {
                 array_unshift($segments, [
-<<<<<<< HEAD
-                    'edge_id'        => $segment['edge_id'],
-                    'from'           => $segment['node'],
-                    'to'             => $cursorNode,
-                    'cost'           => $segment['cost'],
-                    'mode'           => $cursorMode,
-                    'previous_mode'  => $cursorMode,
-=======
                     'edge_id' => $segment['edge_id'],
                     'from' => $segment['node'],
                     'to' => $cursorNode,
@@ -430,19 +251,19 @@ class DijkstraRoutingService
                     'base_weight' => $segment['base_weight'] ?? null,
                     'current_weight' => $segment['current_weight'] ?? null,
                     'traffic_factor' => $segment['traffic_factor'] ?? null,
+                    'modes' => $segment['modes'] ?? [],
                     'anomaly_active' => $segment['anomaly_active'] ?? false,
                     'car_allowed' => $segment['car_allowed'] ?? false,
-                    'structural_car_allowed' => $segment['structural_car_allowed'] ?? false,
-                    'structural_rickshaw_allowed' => $segment['structural_rickshaw_allowed'] ?? false,
-                    'structural_walk_allowed' => $segment['structural_walk_allowed'] ?? false,
+                    'structural_car_allowed' => $segment['structural_car_allowed'] ?? null,
+                    'structural_rickshaw_allowed' => $segment['structural_rickshaw_allowed'] ?? null,
+                    'structural_walk_allowed' => $segment['structural_walk_allowed'] ?? null,
                     'is_goli' => $segment['is_goli'] ?? false,
                     'is_overpass' => $segment['is_overpass'] ?? false,
-                    'mode' => $cursorMode,
-                    'previous_mode' => $cursorMode,
->>>>>>> origin/final
+                    'mode' => $this->parseStateKey($cursorState)['mode'],
+                    'previous_mode' => $this->parseStateKey($cursorState)['mode'],
                     'switch_penalty' => 0,
-                    'type'           => 'travel',
-                    'live_cost'      => $segment['live_cost'] ?? null,
+                    'type' => 'travel',
+                    'live_cost' => $segment['live_cost'] ?? null,
                 ]);
             }
 
@@ -518,9 +339,10 @@ class DijkstraRoutingService
         $walkMax = (float) (config('golitransit.transport_distance_thresholds.walk_max_km') ?? 0.8);
         $carPreferenceDistance = (float) config('golitransit.long_trip_car_preference_km', 4.5);
         $distanceKm = (float) ($segment['distance_km'] ?? 0);
-        $structuralCar = ($segment['structural_car_allowed'] ?? false) && in_array('car', $allowedModes, true);
-        $structuralRickshaw = ($segment['structural_rickshaw_allowed'] ?? false) && in_array('rickshaw', $allowedModes, true);
-        $structuralWalk = ($segment['structural_walk_allowed'] ?? true) && in_array('walk', $allowedModes, true);
+        $edgeModes = $segment['modes'] ?? [];
+        $structuralCar = ($segment['structural_car_allowed'] ?? in_array('car', $edgeModes, true)) && in_array('car', $allowedModes, true);
+        $structuralRickshaw = ($segment['structural_rickshaw_allowed'] ?? in_array('rickshaw', $edgeModes, true)) && in_array('rickshaw', $allowedModes, true);
+        $structuralWalk = ($segment['structural_walk_allowed'] ?? in_array('walk', $edgeModes, true)) && in_array('walk', $allowedModes, true);
 
         if ($segment['is_overpass'] ?? false) {
             return $structuralWalk ? 'walk' : ($structuralRickshaw ? 'rickshaw' : 'car');

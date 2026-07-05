@@ -132,6 +132,7 @@ const state = {
   activeScenario: scenarios[0].id,
   activeTab: "route",
   mode: "demo",
+  mapView: "graph", // "graph" | "live"
   routeResponse: mockRouteResponse,
   snapshotResponse: mockSnapshotResponse,
   anomalyResponse: mockAnomalyResponse,
@@ -154,6 +155,8 @@ const elements = {
   loadSnapshot: document.getElementById("loadSnapshot"),
   triggerAnomaly: document.getElementById("triggerAnomaly"),
   networkMap: document.getElementById("networkMap"),
+  liveMap: document.getElementById("liveMap"),
+  mapViewToggle: document.getElementById("mapViewToggle"),
   routeStrip: document.getElementById("routeStrip"),
   routeSummary: document.getElementById("routeSummary"),
   responseConsole: document.getElementById("responseConsole"),
@@ -582,6 +585,105 @@ const triggerAnomaly = async () => {
   renderAll();
 };
 
+/* ------------------------------------------------------------------ */
+/* TomTom live map integration                                         */
+/* ------------------------------------------------------------------ */
+
+const TOMTOM_SDK_VERSION = "6.25.0";
+
+let tomtomMapInstance = null;
+let tomtomLoadPromise = null;
+
+const loadTomTomSdk = () => {
+  if (window.tt) {
+    return Promise.resolve();
+  }
+
+  if (tomtomLoadPromise) {
+    return tomtomLoadPromise;
+  }
+
+  tomtomLoadPromise = (async () => {
+    const response = await fetch(apiUrl("/api/config/maps"));
+    if (!response.ok) {
+      throw new Error("Failed to fetch map config from backend");
+    }
+    const { tomtom_key: tomtomKey } = await response.json();
+    if (!tomtomKey) {
+      throw new Error("TomTom key missing from /api/config/maps response");
+    }
+
+    const cssLink = document.createElement("link");
+    cssLink.rel = "stylesheet";
+    cssLink.href = `https://api.tomtom.com/maps-sdk-for-web/cdn/6.x/${TOMTOM_SDK_VERSION}/maps/maps.css`;
+    document.head.appendChild(cssLink);
+
+    await new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = `https://api.tomtom.com/maps-sdk-for-web/cdn/6.x/${TOMTOM_SDK_VERSION}/maps/maps-web.min.js`;
+      script.async = true;
+      script.onload = resolve;
+      script.onerror = () => reject(new Error("Failed to load TomTom Maps SDK script"));
+      document.head.appendChild(script);
+    });
+
+    window.__tomtomKey = tomtomKey;
+  })();
+
+  return tomtomLoadPromise;
+};
+
+const initTomTomMap = async () => {
+  if (tomtomMapInstance) {
+    // Map already initialized -- just make sure it redraws for the now-visible container.
+    setTimeout(() => tomtomMapInstance.resize(), 0);
+    return;
+  }
+
+  try {
+    await loadTomTomSdk();
+  } catch (error) {
+    elements.liveMap.innerHTML = `<div class="live-map-error">Live map unavailable: ${error.message}</div>`;
+    return;
+  }
+
+  const key = window.__tomtomKey;
+
+  tomtomMapInstance = window.tt.map({
+    key,
+    container: "liveMap",
+    center: [90.3892, 23.758], // TomTom uses [lng, lat] -- reversed from Google
+    zoom: 13,
+  });
+
+  tomtomMapInstance.on("load", () => {
+    tomtomMapInstance.addLayer({
+      id: "traffic-flow",
+      type: "raster",
+      source: {
+        type: "raster",
+        tiles: [`https://api.tomtom.com/traffic/map/4/tile/flow/relative/{z}/{x}/{y}.png?key=${key}`],
+        tileSize: 256,
+      },
+    });
+  });
+};
+
+const setMapView = (view) => {
+  state.mapView = view;
+
+  elements.networkMap.style.display = view === "graph" ? "block" : "none";
+  elements.liveMap.style.display = view === "live" ? "block" : "none";
+
+  elements.mapViewToggle.querySelectorAll("[data-view]").forEach((button) => {
+    button.classList.toggle("active", button.dataset.view === view);
+  });
+
+  if (view === "live") {
+    initTomTomMap();
+  }
+};
+
 const attachEvents = () => {
   elements.apiBase.value = state.apiBase;
 
@@ -634,6 +736,16 @@ const attachEvents = () => {
     renderTabs();
     renderConsole();
   });
+
+  if (elements.mapViewToggle) {
+    elements.mapViewToggle.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-view]");
+      if (!button) {
+        return;
+      }
+      setMapView(button.dataset.view);
+    });
+  }
 };
 
 const init = () => {
