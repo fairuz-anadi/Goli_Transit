@@ -18,10 +18,18 @@ class GraphManager
 
     public function resetGraph(): void
     {
+        $cachedWeights = \Illuminate\Support\Facades\Cache::get('golitransit:current_weights', []);
+
         static::$graph = [
             'nodes' => $this->mapData->getNodes(),
             'edges' => array_map(
-                fn (array $edge): array => $this->applyAccessRules($edge),
+                function (array $edge) use ($cachedWeights): array {
+                    if (array_key_exists($edge['id'], $cachedWeights)) {
+                        $edge['current_weight'] = $cachedWeights[$edge['id']];
+                    }
+
+                    return $this->applyAccessRules($edge);
+                },
                 $this->mapData->getEdges()
             ),
         ];
@@ -69,6 +77,69 @@ class GraphManager
         }
 
         return $adjacency;
+    }
+
+    /**
+     * Returns all car-allowed edges with the lat/lng of their endpoints attached,
+     * in the exact shape needed to call an external traffic API (e.g. TomTom
+     * Routing API) per edge: id, from_lat, from_lng, to_lat, to_lng.
+     */
+    public function getCarAllowedEdgesWithCoordinates(): array
+    {
+        $nodeIndex = $this->getNodeIndex();
+        $edges = [];
+
+        foreach ($this->getAdjacencyGraph() as $fromId => $edgeList) {
+            foreach ($edgeList as $edge) {
+                if (! $edge['car_allowed']) {
+                    continue;
+                }
+
+                $fromNode = $nodeIndex[$fromId] ?? null;
+                $toNode = $nodeIndex[$edge['to']] ?? null;
+
+                if ($fromNode === null || $toNode === null) {
+                    continue;
+                }
+
+                $edges[] = [
+                    'id' => $edge['id'],
+                    'from' => $fromId,
+                    'to' => $edge['to'],
+                    'from_lat' => $fromNode['lat'],
+                    'from_lng' => $fromNode['lng'],
+                    'to_lat' => $toNode['lat'],
+                    'to_lng' => $toNode['lng'],
+                ];
+            }
+        }
+
+        return $edges;
+    }
+
+    /**
+     * Directly sets an edge's current_weight to a given value (e.g. minutes
+     * returned from a live traffic API), then re-applies access rules so
+     * derived fields (traffic_factor, anomaly_active, modes) stay consistent.
+     *
+     * Unlike updateAnomalyZone*(), this sets an absolute value rather than
+     * multiplying base_weight, since external traffic APIs return real
+     * durations, not multipliers.
+     */
+    public function setCurrentWeight(string $edgeId, float $weight): void
+    {
+        foreach (static::$graph['edges'] as &$edge) {
+            if ($edge['id'] === $edgeId) {
+                $edge['current_weight'] = $weight;
+                $edge = $this->applyAccessRules($edge);
+                break;
+            }
+        }
+        unset($edge);
+
+        $cachedWeights = \Illuminate\Support\Facades\Cache::get('golitransit:current_weights', []);
+        $cachedWeights[$edgeId] = $weight;
+        \Illuminate\Support\Facades\Cache::put('golitransit:current_weights', $cachedWeights, now()->addHours(6));
     }
 
     public function getNeighbours(string $nodeId, string $mode): array

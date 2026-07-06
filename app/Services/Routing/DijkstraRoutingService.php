@@ -2,7 +2,6 @@
 
 namespace App\Services\Routing;
 
-use App\Services\Routing\TransportModePolicy;
 use RuntimeException;
 
 class DijkstraRoutingService
@@ -80,14 +79,16 @@ class DijkstraRoutingService
                         'base_weight' => $edge['base_weight'] ?? null,
                         'current_weight' => $edge['current_weight'] ?? null,
                         'traffic_factor' => $edge['traffic_factor'] ?? null,
+                        'modes' => $edge['modes'] ?? [],
                         'anomaly_active' => $edge['anomaly_active'] ?? false,
                         'car_allowed' => $edge['car_allowed'] ?? false,
-                        'structural_car_allowed' => $edge['structural_car_allowed'] ?? false,
-                        'structural_rickshaw_allowed' => $edge['structural_rickshaw_allowed'] ?? false,
-                        'structural_walk_allowed' => $edge['structural_walk_allowed'] ?? false,
+                        'structural_car_allowed' => $edge['structural_car_allowed'] ?? null,
+                        'structural_rickshaw_allowed' => $edge['structural_rickshaw_allowed'] ?? null,
+                        'structural_walk_allowed' => $edge['structural_walk_allowed'] ?? null,
                         'is_goli' => $edge['is_goli'] ?? false,
                         'is_overpass' => $edge['is_overpass'] ?? false,
                         'switch_penalty' => 0,
+                        'live_cost' => $edge['live_cost'] ?? null,
                     ];
                 }
             }
@@ -115,6 +116,7 @@ class DijkstraRoutingService
                         'cost' => 0,
                         'distance_km' => 0,
                         'switch_penalty' => $switchPenalty,
+                        'live_cost' => null,
                     ];
                 }
             }
@@ -160,6 +162,7 @@ class DijkstraRoutingService
                 static fn (array $segment): int => $segment['switch_penalty'],
                 $segments
             )),
+            'live_traffic_applied' => false,
         ];
     }
 
@@ -203,7 +206,7 @@ class DijkstraRoutingService
         $cursorState = $endState;
 
         while ($cursorState !== null) {
-            ['node' => $cursorNode, 'mode' => $cursorMode] = $this->parseStateKey($cursorState);
+            ['node' => $cursorNode] = $this->parseStateKey($cursorState);
 
             if ($cursorNode === $start && ($previous[$cursorState] ?? null) === null) {
                 break;
@@ -232,10 +235,11 @@ class DijkstraRoutingService
                     'structural_walk_allowed' => false,
                     'is_goli' => false,
                     'is_overpass' => false,
-                    'mode' => $cursorMode,
+                    'mode' => $this->parseStateKey($cursorState)['mode'],
                     'previous_mode' => $segment['mode'],
                     'switch_penalty' => $segment['switch_penalty'],
                     'type' => 'mode_switch',
+                    'live_cost' => null,
                 ]);
             } else {
                 array_unshift($segments, [
@@ -247,17 +251,19 @@ class DijkstraRoutingService
                     'base_weight' => $segment['base_weight'] ?? null,
                     'current_weight' => $segment['current_weight'] ?? null,
                     'traffic_factor' => $segment['traffic_factor'] ?? null,
+                    'modes' => $segment['modes'] ?? [],
                     'anomaly_active' => $segment['anomaly_active'] ?? false,
                     'car_allowed' => $segment['car_allowed'] ?? false,
-                    'structural_car_allowed' => $segment['structural_car_allowed'] ?? false,
-                    'structural_rickshaw_allowed' => $segment['structural_rickshaw_allowed'] ?? false,
-                    'structural_walk_allowed' => $segment['structural_walk_allowed'] ?? false,
+                    'structural_car_allowed' => $segment['structural_car_allowed'] ?? null,
+                    'structural_rickshaw_allowed' => $segment['structural_rickshaw_allowed'] ?? null,
+                    'structural_walk_allowed' => $segment['structural_walk_allowed'] ?? null,
                     'is_goli' => $segment['is_goli'] ?? false,
                     'is_overpass' => $segment['is_overpass'] ?? false,
-                    'mode' => $cursorMode,
-                    'previous_mode' => $cursorMode,
+                    'mode' => $this->parseStateKey($cursorState)['mode'],
+                    'previous_mode' => $this->parseStateKey($cursorState)['mode'],
                     'switch_penalty' => 0,
                     'type' => 'travel',
+                    'live_cost' => $segment['live_cost'] ?? null,
                 ]);
             }
 
@@ -333,9 +339,10 @@ class DijkstraRoutingService
         $walkMax = (float) (config('golitransit.transport_distance_thresholds.walk_max_km') ?? 0.8);
         $carPreferenceDistance = (float) config('golitransit.long_trip_car_preference_km', 4.5);
         $distanceKm = (float) ($segment['distance_km'] ?? 0);
-        $structuralCar = ($segment['structural_car_allowed'] ?? false) && in_array('car', $allowedModes, true);
-        $structuralRickshaw = ($segment['structural_rickshaw_allowed'] ?? false) && in_array('rickshaw', $allowedModes, true);
-        $structuralWalk = ($segment['structural_walk_allowed'] ?? true) && in_array('walk', $allowedModes, true);
+        $edgeModes = $segment['modes'] ?? [];
+        $structuralCar = ($segment['structural_car_allowed'] ?? in_array('car', $edgeModes, true)) && in_array('car', $allowedModes, true);
+        $structuralRickshaw = ($segment['structural_rickshaw_allowed'] ?? in_array('rickshaw', $edgeModes, true)) && in_array('rickshaw', $allowedModes, true);
+        $structuralWalk = ($segment['structural_walk_allowed'] ?? in_array('walk', $edgeModes, true)) && in_array('walk', $allowedModes, true);
 
         if ($segment['is_overpass'] ?? false) {
             return $structuralWalk ? 'walk' : ($structuralRickshaw ? 'rickshaw' : 'car');
