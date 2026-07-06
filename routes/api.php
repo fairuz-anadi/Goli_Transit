@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AnomalyController;
 use App\Http\Controllers\Api\GraphSnapshotController;
+use App\Http\Controllers\Api\InternalSyncController;
 use App\Http\Controllers\Api\RouteController;
 use Illuminate\Support\Facades\Route;
 /*
@@ -35,5 +36,18 @@ Route::get('/config/maps', function () {
         'tomtom_key' => config('services.tomtom.key'),
     ]);
 });
+
+/*
+|--------------------------------------------------------------------------
+| Internal cron trigger
+|--------------------------------------------------------------------------
+| Vercel's serverless runtime has no persistent process to run Laravel's
+| scheduler, so Kernel::schedule() never fires in production. This route
+| is what Vercel Cron actually calls to run the TomTom sync (Vercel Cron
+| always invokes via GET, and auto-sends `Authorization: Bearer $CRON_SECRET`
+| when that env var is set) so it can't be triggered by anyone else.
+*/
+
+Route::get('/internal/sync-traffic', InternalSyncController::class);
 
 
