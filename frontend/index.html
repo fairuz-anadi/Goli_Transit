@@ -134,12 +134,16 @@
               <p class="eyebrow">Dhaka network map</p>
               <h3>Route geometry with live highlights</h3>
             </div>
-            <span class="pill">Interactive canvas</span>
+            <div class="map-view-toggle" id="mapViewToggle">
+              <button type="button" class="tab active" data-view="graph">Network graph</button>
+              <button type="button" class="tab" data-view="live">Live map (TomTom)</button>
+            </div>
           </div>
 
           <div class="map-frame">
             <div class="map-rings"></div>
             <svg id="networkMap" viewBox="0 0 1000 720" aria-label="Dhaka network map"></svg>
+            <div id="liveMap" class="live-map" style="display: none;"></div>
             <div class="map-caption">
               <span>Motion cues are decorative, but node labels and path state update from backend responses.</span>
             </div>
