@@ -9,6 +9,13 @@
 
   "outputDirectory": "public/build",
 
+  "crons": [
+    {
+      "path": "/api/internal/sync-traffic",
+      "schedule": "0 */3 * * *"
+    }
+  ],
+
   "rewrites": [
     {
       "source": "/build/(.*)",
