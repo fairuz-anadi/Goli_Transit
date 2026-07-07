@@ -7,7 +7,7 @@
     }
   },
 
-  "outputDirectory": "public/build",
+  "outputDirectory": "public",
 
   "crons": [
     {
@@ -17,10 +17,6 @@
   ],
 
   "rewrites": [
-    {
-      "source": "/build/(.*)",
-      "destination": "/build/$1"
-    },
     {
       "source": "/(.*)",
       "destination": "/api/index.php"
