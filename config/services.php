@@ -35,5 +35,8 @@ return [
         'key' => env('TOMTOM_API_KEY'),
     ],
 
+    // Vercel Cron Jobs automatically send `Authorization: Bearer $CRON_SECRET`
+    // when a CRON_SECRET env var is set on the project, regardless of framework.
+    'internal_cron_secret' => env('CRON_SECRET'),
 
 ];

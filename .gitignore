@@ -17,3 +17,7 @@ yarn-error.log
 /.fleet
 /.idea
 /.vscode
+.codex-serve.log
+.codex-serve.err.log
+.frontend-server.out.log
+.frontend-server.err.log
