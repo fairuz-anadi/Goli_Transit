@@ -49,7 +49,7 @@ const featureCards = [
     },
 ];
 
-export default function Welcome({ auth, laravelVersion, phpVersion }) {
+export default function Welcome({ laravelVersion, phpVersion }) {
     const [graph, setGraph] = useState({ nodes: [], edges: [] });
     const [meta, setMeta] = useState({});
     const [currentRoute, setCurrentRoute] = useState(null);
@@ -231,29 +231,12 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
                             >
                                 Control room
                             </Link>
-                            {auth.user ? (
-                                <Link
-                                    href={route('dashboard')}
-                                    className="inline-flex items-center rounded-full border border-cyan-300/30 bg-cyan-300/10 px-5 py-3 text-sm font-semibold text-cyan-50 transition hover:-translate-y-0.5 hover:bg-cyan-300/15"
-                                >
-                                    Open dashboard
-                                </Link>
-                            ) : (
-                                <>
-                                    <Link
-                                        href={route('login')}
-                                        className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-white/10"
-                                    >
-                                        Log in
-                                    </Link>
-                                    <Link
-                                        href={route('register')}
-                                        className="inline-flex items-center rounded-full bg-gradient-to-r from-cyan-400 to-amber-300 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:-translate-y-0.5"
-                                    >
-                                        Create account
-                                    </Link>
-                                </>
-                            )}
+                            <Link
+                                href={route('dashboard')}
+                                className="inline-flex items-center rounded-full border border-cyan-300/30 bg-cyan-300/10 px-5 py-3 text-sm font-semibold text-cyan-50 transition hover:-translate-y-0.5 hover:bg-cyan-300/15"
+                            >
+                                Open dashboard
+                            </Link>
                         </div>
                     </div>
                 </header>
