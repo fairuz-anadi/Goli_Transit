@@ -83,13 +83,13 @@ export default function RoutePlannerForm({
                         {MODES.map((mode) => (
                             <label
                                 key={mode.value}
-                                className="flex items-center gap-3 rounded-2xl border border-white/10 bg-slate-950/50 px-4 py-3 text-sm text-slate-200"
+                                className="flex min-h-[4.5rem] items-center gap-3 rounded-2xl border border-white/10 bg-slate-950/50 px-4 py-3 text-sm text-slate-200"
                             >
                                 <input
                                     type="checkbox"
                                     checked={allowedModes.includes(mode.value)}
                                     onChange={() => onModeToggle(mode.value)}
-                                    className="h-4 w-4 accent-cyan-400"
+                                    className="h-4 w-4 shrink-0 accent-cyan-400"
                                 />
                                 <span>
                                     <strong className="block text-white">{mode.label}</strong>
