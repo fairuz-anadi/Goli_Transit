@@ -73,6 +73,46 @@ class TomTomService
     }
 
     /**
+     * Get the real road-following polyline points between two locations,
+     * so the map can draw an edge as an actual street shape instead of a
+     * straight line. Returns null on failure so callers can fall back to
+     * a straight line between the two endpoints.
+     */
+    public function getRoutePoints(float $fromLat, float $fromLng, float $toLat, float $toLng, string $travelMode = 'car'): ?array
+    {
+        $url = "https://api.tomtom.com/routing/1/calculateRoute/{$fromLat},{$fromLng}:{$toLat},{$toLng}/json";
+
+        try {
+            $response = Http::timeout(10)->get($url, [
+                'key' => $this->apiKey,
+                'travelMode' => $travelMode,
+            ]);
+        } catch (\Throwable $e) {
+            Log::warning('TomTom Routing request threw an exception', ['message' => $e->getMessage()]);
+            return null;
+        }
+
+        if (!$response->successful()) {
+            Log::warning('TomTom Routing request failed', [
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
+            return null;
+        }
+
+        $points = $response->json('routes.0.legs.0.points');
+
+        if (!is_array($points) || $points === []) {
+            return null;
+        }
+
+        return array_map(
+            static fn (array $point): array => [$point['latitude'], $point['longitude']],
+            $points
+        );
+    }
+
+    /**
      * Get current flow speed data for a specific point on the road network.
      * Useful for spot-checking congestion without a full route calculation.
      *

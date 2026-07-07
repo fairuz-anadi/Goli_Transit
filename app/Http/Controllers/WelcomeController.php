@@ -3,16 +3,17 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Response;
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 
 class WelcomeController extends Controller
 {
-    public function index(): Response
+    public function index(): InertiaResponse
     {
-        return response(
-            file_get_contents(public_path('index.html')),
-            200,
-            ['Content-Type' => 'text/html; charset=UTF-8']
-        );
+        return Inertia::render('Welcome', [
+            'laravelVersion' => app()->version(),
+            'phpVersion' => phpversion(),
+        ]);
     }
 
     public function controlRoom(): Response

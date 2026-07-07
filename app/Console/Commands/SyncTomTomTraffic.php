@@ -14,8 +14,6 @@ class SyncTomTomTraffic extends Command
 
     public function handle(TomTomService $tomtom)
     {
-        // Replace this with your actual GraphManager / MapData call.
-        // Expected shape per edge: ['id' => ..., 'from_lat' => ..., 'from_lng' => ..., 'to_lat' => ..., 'to_lng' => ...]
         $graph = app(\App\Services\Graph\GraphManager::class);
         $edges = $graph->getCarAllowedEdgesWithCoordinates();
         $isDryRun = $this->option('dry-run');
