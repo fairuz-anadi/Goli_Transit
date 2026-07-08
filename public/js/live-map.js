@@ -1,12 +1,14 @@
 /*
- * Shared TomTom live-map renderer for public/index.html and public/control-room.html.
- * Replaces the old hand-rolled SVG projection/draw logic with a real TomTom map:
- * street tiles, a live traffic flow layer, and the simulated graph/route drawn on top.
+ * Shared Leaflet + OpenStreetMap live-map renderer for public/index.html and
+ * public/control-room.html. Renders the simulated GoliTransit graph/route on
+ * top of real OSM street tiles. Replaces the previous TomTom SDK integration.
  */
 (function (global) {
-  const SDK_VERSION = "6.25.0";
-  const SDK_JS = `https://api.tomtom.com/maps-sdk-for-web/cdn/6.x/${SDK_VERSION}/maps/maps-web.min.js`;
-  const SDK_CSS = `https://api.tomtom.com/maps-sdk-for-web/cdn/6.x/${SDK_VERSION}/maps/maps.css`;
+  const DHAKA_CENTER = [23.7925, 90.4071];
+  const DEFAULT_ZOOM = 12;
+  const LEAFLET_VERSION = "1.9.4";
+  const LEAFLET_JS = `https://unpkg.com/leaflet@${LEAFLET_VERSION}/dist/leaflet.js`;
+  const LEAFLET_CSS = `https://unpkg.com/leaflet@${LEAFLET_VERSION}/dist/leaflet.css`;
 
   const NODE_COLORS = {
     hub: "#17384e",
@@ -20,7 +22,6 @@
   const ANOMALY_EDGE_COLOR = "#d5566a";
 
   let sdkLoadPromise = null;
-  let tomtomKeyPromise = null;
 
   function loadScript(src) {
     return new Promise((resolve, reject) => {
@@ -45,30 +46,11 @@
   }
 
   function loadSdk() {
+    if (global.L) return Promise.resolve();
     if (!sdkLoadPromise) {
-      sdkLoadPromise = Promise.all([loadStylesheet(SDK_CSS), loadScript(SDK_JS)]);
+      sdkLoadPromise = Promise.all([loadStylesheet(LEAFLET_CSS), loadScript(LEAFLET_JS)]);
     }
     return sdkLoadPromise;
-  }
-
-  async function fetchTomTomKey() {
-    if (tomtomKeyPromise) return tomtomKeyPromise;
-
-    tomtomKeyPromise = (async () => {
-      for (const path of ["/api/config/maps", "/config/maps"]) {
-        try {
-          const response = await fetch(path, { headers: { Accept: "application/json" } });
-          if (!response.ok) continue;
-          const body = await response.json();
-          if (body.tomtom_key) return body.tomtom_key;
-        } catch (error) {
-          // try the next candidate path
-        }
-      }
-      throw new Error("Could not load a TomTom API key from /config/maps.");
-    })();
-
-    return tomtomKeyPromise;
   }
 
   function edgeColor(edge) {
@@ -82,34 +64,24 @@
     return edge.anomaly_active ? Math.min(2 + trafficFactor, 7) : edge.is_goli ? 2.5 : 2;
   }
 
-  function edgeCoordinates(edge, from, to) {
+  const edgesWarnedNoRoute = new Set();
+
+  function edgeLatLngs(edge, from, to) {
     if (Array.isArray(edge.waypoints) && edge.waypoints.length >= 2) {
-      return edge.waypoints.map(([lat, lng]) => [lng, lat]);
+      return edge.waypoints.map(([lat, lng]) => [lat, lng]);
+    }
+
+    if (!edgesWarnedNoRoute.has(edge.id)) {
+      edgesWarnedNoRoute.add(edge.id);
+      console.warn(
+        `No cached OSRM road geometry for edge "${edge.id}" - drawing a straight line instead. ` +
+          "Run `php artisan golitransit:sync-road-geometry-osrm` to populate it."
+      );
     }
 
     return [
-      [from.lng, from.lat],
-      [to.lng, to.lat],
-    ];
-  }
-
-  function boundsFromNodes(nodes) {
-    if (!nodes.length) return null;
-    let minLng = Infinity;
-    let maxLng = -Infinity;
-    let minLat = Infinity;
-    let maxLat = -Infinity;
-
-    nodes.forEach((node) => {
-      minLng = Math.min(minLng, node.lng);
-      maxLng = Math.max(maxLng, node.lng);
-      minLat = Math.min(minLat, node.lat);
-      maxLat = Math.max(maxLat, node.lat);
-    });
-
-    return [
-      [minLng, minLat],
-      [maxLng, maxLat],
+      [from.lat, from.lng],
+      [to.lat, to.lng],
     ];
   }
 
@@ -117,12 +89,9 @@
     constructor(map) {
       this.map = map;
       this.markers = [];
+      this.edgeLayer = global.L.layerGroup().addTo(map);
+      this.routeLayer = global.L.layerGroup().addTo(map);
       this.graph = { nodes: [], edges: [] };
-    }
-
-    removeLayerAndSource(id) {
-      if (this.map.getLayer(id)) this.map.removeLayer(id);
-      if (this.map.getSource(id)) this.map.removeSource(id);
     }
 
     clearMarkers() {
@@ -133,43 +102,20 @@
     renderGraph(nodes, edges) {
       this.graph = { nodes, edges };
       this.clearMarkers();
-      this.removeLayerAndSource("goli-graph-edges");
-      this.removeLayerAndSource("goli-graph-route");
+      this.edgeLayer.clearLayers();
+      this.routeLayer.clearLayers();
 
       const nodeIndex = Object.fromEntries(nodes.map((node) => [node.id, node]));
-      const edgeFeatures = edges
-        .map((edge) => {
-          const from = nodeIndex[edge.from];
-          const to = nodeIndex[edge.to];
-          if (!from || !to) return null;
 
-          return {
-            type: "Feature",
-            properties: {
-              id: edge.id,
-              color: edgeColor(edge),
-              width: edgeWidth(edge),
-            },
-            geometry: {
-              type: "LineString",
-              coordinates: edgeCoordinates(edge, from, to),
-            },
-          };
-        })
-        .filter(Boolean);
+      edges.forEach((edge) => {
+        const from = nodeIndex[edge.from];
+        const to = nodeIndex[edge.to];
+        if (!from || !to) return;
 
-      this.map.addSource("goli-graph-edges", {
-        type: "geojson",
-        data: { type: "FeatureCollection", features: edgeFeatures },
-      });
-      this.map.addLayer({
-        id: "goli-graph-edges",
-        type: "line",
-        source: "goli-graph-edges",
-        paint: {
-          "line-color": ["get", "color"],
-          "line-width": ["get", "width"],
-        },
+        global.L.polyline(edgeLatLngs(edge, from, to), {
+          color: edgeColor(edge),
+          weight: edgeWidth(edge),
+        }).addTo(this.edgeLayer);
       });
 
       nodes.forEach((node) => {
@@ -203,20 +149,19 @@
         label.style.boxShadow = "0 1px 3px rgba(15,36,51,.35)";
         el.appendChild(label);
 
-        const marker = new global.tt.Marker({ element: el, anchor: "left" })
-          .setLngLat([node.lng, node.lat])
-          .addTo(this.map);
+        const icon = global.L.divIcon({ html: el.outerHTML, className: "", iconAnchor: [dotSize / 2, dotSize / 2] });
+        const marker = global.L.marker([node.lat, node.lng], { icon }).addTo(this.map);
         this.markers.push(marker);
       });
 
-      const bounds = boundsFromNodes(nodes);
-      if (bounds) {
-        this.map.fitBounds(bounds, { padding: 60, duration: 0 });
+      if (nodes.length) {
+        const bounds = global.L.latLngBounds(nodes.map((node) => [node.lat, node.lng]));
+        this.map.fitBounds(bounds, { padding: [60, 60] });
       }
     }
 
     renderRoute(path, segments) {
-      this.removeLayerAndSource("goli-graph-route");
+      this.routeLayer.clearLayers();
 
       const routeEdgeIds = new Set(
         (segments || []).filter((segment) => segment.edge_id).map((segment) => segment.edge_id)
@@ -224,56 +169,37 @@
       if (!routeEdgeIds.size) return;
 
       const nodeIndex = Object.fromEntries(this.graph.nodes.map((node) => [node.id, node]));
-      const routeFeatures = this.graph.edges
+
+      this.graph.edges
         .filter((edge) => routeEdgeIds.has(edge.id))
-        .map((edge) => {
+        .forEach((edge) => {
           const from = nodeIndex[edge.from];
           const to = nodeIndex[edge.to];
-          if (!from || !to) return null;
+          if (!from || !to) return;
 
-          return {
-            type: "Feature",
-            properties: { id: edge.id },
-            geometry: {
-              type: "LineString",
-              coordinates: edgeCoordinates(edge, from, to),
-            },
-          };
-        })
-        .filter(Boolean);
-
-      this.map.addSource("goli-graph-route", {
-        type: "geojson",
-        data: { type: "FeatureCollection", features: routeFeatures },
-      });
-      this.map.addLayer({
-        id: "goli-graph-route",
-        type: "line",
-        source: "goli-graph-route",
-        paint: {
-          "line-color": ROUTE_COLOR,
-          "line-width": 5,
-          "line-opacity": 0.9,
-        },
-      });
+          global.L.polyline(edgeLatLngs(edge, from, to), {
+            color: ROUTE_COLOR,
+            weight: 5,
+            opacity: 0.9,
+          }).addTo(this.routeLayer);
+        });
     }
   }
 
   async function initLiveMap(containerId, options = {}) {
-    const [key] = await Promise.all([fetchTomTomKey(), loadSdk()]);
+    await loadSdk();
 
-    const map = global.tt.map({
-      key,
-      container: containerId,
-      center: options.center || [90.4, 23.78],
-      zoom: options.zoom || 12,
-      showTrafficFlow: true,
-      showTrafficIncidents: true,
+    const map = global.L.map(containerId, {
+      center: options.center || DHAKA_CENTER,
+      zoom: options.zoom || DEFAULT_ZOOM,
     });
 
-    return new Promise((resolve) => {
-      map.on("load", () => resolve(new LiveMap(map)));
-    });
+    global.L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    }).addTo(map);
+
+    return new LiveMap(map);
   }
 
   global.GoliLiveMap = { init: initLiveMap };

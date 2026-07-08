@@ -52,7 +52,6 @@ Goli Transit is a Laravel + React application for multi-modal routing and anomal
 - `POST /api/route` → `RouteController`
 - `POST /api/anomaly` → `AnomalyController`
 - `GET /api/graph/snapshot` → `GraphSnapshotController`
-- `GET /api/config/maps` → returns TomTom API key from server config
 - `GET /internal/sync-traffic` → `InternalSyncController`
 
 ### Web Routes (`routes/web.php`)
