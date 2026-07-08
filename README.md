@@ -1,5 +1,7 @@
 # GoliTransit
 
+_Deployed update at 2026-07-09._
+
 GoliTransit is a multi-modal routing system built for dense Dhaka-style traffic conditions. It combines a simulated city road graph, a routing engine with vehicle-switch penalties, anomaly-triggered rerouting, and a public control-room UI for live exploration.
 
 Live project:
