@@ -586,87 +586,66 @@ const triggerAnomaly = async () => {
 };
 
 /* ------------------------------------------------------------------ */
-/* TomTom live map integration                                         */
+/* Leaflet live map integration                                        */
 /* ------------------------------------------------------------------ */
 
-const TOMTOM_SDK_VERSION = "6.25.0";
+const DHAKA_CENTER = [23.7925, 90.4071]; // Leaflet uses [lat, lng]
+const LEAFLET_VERSION = "1.9.4";
 
-let tomtomMapInstance = null;
-let tomtomLoadPromise = null;
+let leafletMapInstance = null;
+let leafletLoadPromise = null;
 
-const loadTomTomSdk = () => {
-  if (window.tt) {
+const loadLeafletSdk = () => {
+  if (window.L) {
     return Promise.resolve();
   }
 
-  if (tomtomLoadPromise) {
-    return tomtomLoadPromise;
+  if (leafletLoadPromise) {
+    return leafletLoadPromise;
   }
 
-  tomtomLoadPromise = (async () => {
-    const response = await fetch(apiUrl("/api/config/maps"));
-    if (!response.ok) {
-      throw new Error("Failed to fetch map config from backend");
-    }
-    const { tomtom_key: tomtomKey } = await response.json();
-    if (!tomtomKey) {
-      throw new Error("TomTom key missing from /api/config/maps response");
-    }
-
+  leafletLoadPromise = (async () => {
     const cssLink = document.createElement("link");
     cssLink.rel = "stylesheet";
-    cssLink.href = `https://api.tomtom.com/maps-sdk-for-web/cdn/6.x/${TOMTOM_SDK_VERSION}/maps/maps.css`;
+    cssLink.href = `https://unpkg.com/leaflet@${LEAFLET_VERSION}/dist/leaflet.css`;
     document.head.appendChild(cssLink);
 
     await new Promise((resolve, reject) => {
       const script = document.createElement("script");
-      script.src = `https://api.tomtom.com/maps-sdk-for-web/cdn/6.x/${TOMTOM_SDK_VERSION}/maps/maps-web.min.js`;
+      script.src = `https://unpkg.com/leaflet@${LEAFLET_VERSION}/dist/leaflet.js`;
       script.async = true;
       script.onload = resolve;
-      script.onerror = () => reject(new Error("Failed to load TomTom Maps SDK script"));
+      script.onerror = () => reject(new Error("Failed to load Leaflet script"));
       document.head.appendChild(script);
     });
-
-    window.__tomtomKey = tomtomKey;
   })();
 
-  return tomtomLoadPromise;
+  return leafletLoadPromise;
 };
 
-const initTomTomMap = async () => {
-  if (tomtomMapInstance) {
+const initLeafletMap = async () => {
+  if (leafletMapInstance) {
     // Map already initialized -- just make sure it redraws for the now-visible container.
-    setTimeout(() => tomtomMapInstance.resize(), 0);
+    setTimeout(() => leafletMapInstance.invalidateSize(), 0);
     return;
   }
 
   try {
-    await loadTomTomSdk();
+    await loadLeafletSdk();
   } catch (error) {
     elements.liveMap.innerHTML = `<div class="live-map-error">Live map unavailable: ${error.message}</div>`;
     return;
   }
 
-  const key = window.__tomtomKey;
-
-  tomtomMapInstance = window.tt.map({
-    key,
-    container: "liveMap",
-    center: [90.3892, 23.758], // TomTom uses [lng, lat] -- reversed from Google
+  leafletMapInstance = window.L.map("liveMap", {
+    center: DHAKA_CENTER,
     zoom: 13,
   });
 
-  tomtomMapInstance.on("load", () => {
-    tomtomMapInstance.addLayer({
-      id: "traffic-flow",
-      type: "raster",
-      source: {
-        type: "raster",
-        tiles: [`https://api.tomtom.com/traffic/map/4/tile/flow/relative/{z}/{x}/{y}.png?key=${key}`],
-        tileSize: 256,
-      },
-    });
-  });
+  window.L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 19,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  }).addTo(leafletMapInstance);
 };
 
 const setMapView = (view) => {
@@ -680,7 +659,7 @@ const setMapView = (view) => {
   });
 
   if (view === "live") {
-    initTomTomMap();
+    initLeafletMap();
   }
 };
 

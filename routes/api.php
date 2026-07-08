@@ -22,23 +22,6 @@ Route::get('/graph/snapshot', GraphSnapshotController::class);
 
 /*
 |--------------------------------------------------------------------------
-| Add this to routes/api.php
-|--------------------------------------------------------------------------
-| Hands the TomTom key to the frontend at runtime instead of hardcoding it
-| in app.js. Since TomTom keys aren't split into browser/server pairs the
-| way Google's are, this is still worth doing so the key lives in one
-| config source of truth (.env) rather than being duplicated in JS.
-*/
-
-
-Route::get('/config/maps', function () {
-    return response()->json([
-        'tomtom_key' => config('services.tomtom.key'),
-    ]);
-});
-
-/*
-|--------------------------------------------------------------------------
 | Internal cron trigger
 |--------------------------------------------------------------------------
 | Vercel's serverless runtime has no persistent process to run Laravel's

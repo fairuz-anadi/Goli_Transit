@@ -43,9 +43,9 @@ const featureCards = [
         description: 'The planner shows how the system chooses travel modes and where it can switch between them.',
     },
     {
-        eyebrow: 'Live traffic',
-        title: 'Real streets, real congestion',
-        description: 'The map underneath the graph is a real TomTom map with a live traffic flow layer, not a static diagram.',
+        eyebrow: 'Live map',
+        title: 'Real Dhaka streets',
+        description: 'The map underneath the graph is a real OpenStreetMap map, not a static diagram.',
     },
 ];
 
@@ -250,8 +250,8 @@ export default function Welcome({ laravelVersion, phpVersion }) {
                             Know what to ride next to reach your destination.
                         </h2>
                         <p className="mt-5 max-w-2xl text-base leading-8 text-slate-300 sm:text-lg">
-                            This homepage is wired to your Laravel graph in real time: live traffic, live route planning,
-                            and live anomaly rerouting on a real TomTom map.
+                            This homepage is wired to your Laravel graph in real time: live route planning
+                            and live anomaly rerouting on a real OpenStreetMap map.
                         </p>
 
                         <div className="mt-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -285,7 +285,7 @@ export default function Welcome({ laravelVersion, phpVersion }) {
                                 <div>
                                     <p className="text-[0.7rem] uppercase tracking-[0.32em] text-slate-400">Network proof</p>
                                     <h3 className="mt-2 text-xl font-semibold tracking-tight text-white">
-                                        Real streets, live traffic, and your current route
+                                        Real streets and your current route
                                     </h3>
                                 </div>
                                 <button
