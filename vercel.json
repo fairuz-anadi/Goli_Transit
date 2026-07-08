@@ -1,26 +1,25 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
 
+  "installCommand": "npm install",
+  "buildCommand": "npm run build",
+
   "functions": {
     "api/index.php": {
       "runtime": "vercel-php@0.7.4"
     }
   },
 
-  "outputDirectory": "public/build",
+  "outputDirectory": "public",
 
   "crons": [
     {
       "path": "/api/internal/sync-traffic",
-      "schedule": "0 */3 * * *"
+      "schedule": "0 0 * * *"
     }
   ],
 
   "rewrites": [
-    {
-      "source": "/build/(.*)",
-      "destination": "/build/$1"
-    },
     {
       "source": "/(.*)",
       "destination": "/api/index.php"

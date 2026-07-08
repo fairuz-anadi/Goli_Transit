@@ -1,0 +1,44 @@
+# Node
+node_modules/
+
+# Environment files
+.env
+.env.backup
+.env.production
+
+# Tests and CI
+tests/
+.phpunit.cache/
+.phpunit.result.cache
+phpunit.xml
+
+# IDE / Editor
+.idea/
+.vscode/
+.fleet/
+.editorconfig
+
+# Git
+.git/
+.github/
+.gitattributes
+.gitignore
+
+# Logs
+*.log
+.codex-serve.log
+.codex-serve.err.log
+.frontend-server.out.log
+.frontend-server.err.log
+
+# Docs (not needed at runtime)
+PROJECT_PROGRESS.md
+PROJECT_STRUCTURE.md
+
+# Postman collection
+postman/
+
+# Misc
+Homestead.json
+Homestead.yaml
+auth.json
