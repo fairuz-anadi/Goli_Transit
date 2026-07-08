@@ -21,3 +21,6 @@ yarn-error.log
 .codex-serve.err.log
 .frontend-server.out.log
 .frontend-server.err.log
+
+.vercel
+.env*.local
