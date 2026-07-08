@@ -35,6 +35,12 @@ return [
         'key' => env('TOMTOM_API_KEY'),
     ],
 
+    'osrm' => [
+        // Public OSRM demo server by default - rate-limited, not for production.
+        // Point this at a self-hosted OSRM instance for production use.
+        'base_url' => env('OSRM_BASE_URL', 'https://router.project-osrm.org'),
+    ],
+
     // Vercel Cron Jobs automatically send `Authorization: Bearer $CRON_SECRET`
     // when a CRON_SECRET env var is set on the project, regardless of framework.
     'internal_cron_secret' => env('CRON_SECRET'),
