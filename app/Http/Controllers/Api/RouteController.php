@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Services\Graph\RoadSnapService;
 use App\Services\Routing\DemoGraphService;
 use App\Services\Routing\DijkstraRoutingService;
 use App\Services\Sessions\SessionManager;
@@ -14,30 +15,109 @@ use RuntimeException;
 
 class RouteController extends Controller
 {
+    public const USER_LOCATION_START = '__user_location__';
+
     public function __invoke(
         Request $request,
         DemoGraphService $graphService,
         DijkstraRoutingService $routingService,
-        SessionManager $sessionManager
+        SessionManager $sessionManager,
+        RoadSnapService $roadSnapService
     ): JsonResponse {
         $startedAt = hrtime(true);
         $graph = $graphService->getGraph();
         $nodes = $graphService->getNodes();
 
         $validated = $request->validate([
-            'start' => ['required', 'string', Rule::in($nodes)],
+            'start' => ['required', 'string'],
             'destination' => ['required', 'string', Rule::in($nodes)],
             'allowed_modes' => ['required', 'array', 'min:1'],
             'allowed_modes.*' => ['required', 'string', Rule::in(['car', 'rickshaw', 'walk'])],
             'session_id' => ['nullable', 'string', 'max:100'],
         ]);
 
+        $isUserLocationStart = $validated['start'] === self::USER_LOCATION_START;
+
+        if ($isUserLocationStart) {
+            $request->validate([
+                'start_lat' => ['required', 'numeric', 'between:-90,90'],
+                'start_lng' => ['required', 'numeric', 'between:-180,180'],
+            ]);
+        } elseif (! in_array($validated['start'], $nodes, true)) {
+            return response()->json([
+                'message' => 'The selected start is invalid.',
+            ], 422);
+        }
+
         $sessionId = $validated['session_id'] ?? (string) Str::uuid();
+        $startNodeId = $validated['start'];
+        $resolvedStartNode = null;
+        $resolvedStartEdges = [];
+        $resolvedStartSnap = null;
+
+        if ($isUserLocationStart) {
+            try {
+                $snap = $roadSnapService->snap(
+                    (float) $request->input('start_lat'),
+                    (float) $request->input('start_lng')
+                );
+            } catch (RuntimeException $exception) {
+                return response()->json([
+                    'message' => $exception->getMessage(),
+                ], 422);
+            }
+
+            $graph = $roadSnapService->injectTemporaryStartNode($graph, $snap);
+            $startNodeId = RoadSnapService::TEMP_NODE_ID;
+
+            $resolvedStartNode = [
+                'id' => RoadSnapService::TEMP_NODE_ID,
+                'name' => 'Your Location',
+                'type' => 'user_location',
+                'lat' => $snap['projected']['lat'],
+                'lng' => $snap['projected']['lng'],
+            ];
+
+            $resolvedStartEdges = [
+                [
+                    'id' => 'temp_edge_'.RoadSnapService::TEMP_NODE_ID.'_to_'.$snap['edge']['from'],
+                    'from' => RoadSnapService::TEMP_NODE_ID,
+                    'to' => $snap['edge']['from'],
+                    'is_goli' => $snap['edge']['is_goli'] ?? false,
+                    'anomaly_active' => false,
+                    'traffic_factor' => 1,
+                    'waypoints' => [
+                        [$snap['projected']['lat'], $snap['projected']['lng']],
+                        [$snap['from_node']['lat'], $snap['from_node']['lng']],
+                    ],
+                ],
+                [
+                    'id' => 'temp_edge_'.RoadSnapService::TEMP_NODE_ID.'_to_'.$snap['edge']['to'],
+                    'from' => RoadSnapService::TEMP_NODE_ID,
+                    'to' => $snap['edge']['to'],
+                    'is_goli' => $snap['edge']['is_goli'] ?? false,
+                    'anomaly_active' => false,
+                    'traffic_factor' => 1,
+                    'waypoints' => [
+                        [$snap['projected']['lat'], $snap['projected']['lng']],
+                        [$snap['to_node']['lat'], $snap['to_node']['lng']],
+                    ],
+                ],
+            ];
+
+            $resolvedStartSnap = [
+                'raw' => $snap['raw'],
+                'osrm_snapped' => $snap['osrm_snapped'],
+                'projected' => $snap['projected'],
+                'snap_distance_m' => $snap['snap_distance_m'],
+                'edge_id' => $snap['edge']['id'],
+            ];
+        }
 
         try {
             $route = $routingService->run(
                 $graph,
-                $validated['start'],
+                $startNodeId,
                 $validated['destination'],
                 $validated['allowed_modes']
             );
@@ -108,6 +188,9 @@ class RouteController extends Controller
                 'switches' => $route['mode_switches'],
                 'computation_time_ms' => $computationTimeMs,
                 'journey_cards' => $journeyCards,
+                'resolved_start_node' => $resolvedStartNode,
+                'resolved_start_edges' => $resolvedStartEdges,
+                'resolved_start_snap' => $resolvedStartSnap,
                 'justification' => [
                     'summary' => 'Best available anomaly-aware route using distance thresholds, road permissions, and valid switch points.',
                     'computation_time_ms' => $computationTimeMs,

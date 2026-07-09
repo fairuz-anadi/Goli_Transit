@@ -64,6 +64,7 @@ class MapData
             ['id' => 'pallabi', 'name' => 'Pallabi', 'lat' => 23.8223, 'lng' => 90.3654, 'type' => 'road'],
             ['id' => 'cantonment', 'name' => 'Cantonment', 'lat' => 23.8103, 'lng' => 90.3927, 'type' => 'hub'],
             ['id' => 'khilkhet', 'name' => 'Khilkhet', 'lat' => 23.8321, 'lng' => 90.4157, 'type' => 'road'],
+            ['id' => 'kalyanpur', 'name' => 'Kalyanpur', 'lat' => 23.7825, 'lng' => 90.3595, 'type' => 'hub'],
         ];
     }
 
@@ -280,6 +281,16 @@ class MapData
             $this->edge('edge_kuril_khilkhet', 'kuril', 'khilkhet', 4, 1.4, true, true, true),
             $this->edge('edge_khilkhet_nikunja', 'khilkhet', 'nikunja', 4, 1.6, true, true, true),
             $this->edge('edge_nikunja_khilkhet', 'nikunja', 'khilkhet', 4, 1.6, true, true, true),
+
+            // Mirpur Road: the direct arterial between Mirpur 1 and Shyamoli via
+            // Kalyanpur. Previously missing entirely, forcing all Mirpur 1 <-> Shyamoli
+            // traffic through the longer Shewrapara/Agargaon detour.
+            // distance_km values below are placeholders pending the OSRM distance sync;
+            // GraphManager overrides them with real road distance once synced.
+            $this->edge('edge_mirpur_1_kalyanpur', 'mirpur_1', 'kalyanpur', 4, 1.4, true, true, true),
+            $this->edge('edge_kalyanpur_mirpur_1', 'kalyanpur', 'mirpur_1', 4, 1.4, true, true, true),
+            $this->edge('edge_kalyanpur_shamoli', 'kalyanpur', 'shamoli', 4, 1.6, true, true, true),
+            $this->edge('edge_shamoli_kalyanpur', 'shamoli', 'kalyanpur', 4, 1.6, true, true, true),
         ];
     }
 
