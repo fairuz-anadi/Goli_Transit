@@ -8,7 +8,7 @@ function locationErrorStatus(error) {
     return 'error';
 }
 
-const LiveMapCanvas = forwardRef(function LiveMapCanvas({ graph, route, onLocationFix, onLocationStatusChange }, ref) {
+const LiveMapCanvas = forwardRef(function LiveMapCanvas({ graph, route, onLocationFix, onLocationStatusChange, className = 'h-[620px] rounded-[28px]' }, ref) {
     const containerRef = useRef(null);
     const liveMapRef = useRef(null);
     const [mapReady, setMapReady] = useState(false);
@@ -85,7 +85,7 @@ const LiveMapCanvas = forwardRef(function LiveMapCanvas({ graph, route, onLocati
     }, [mapReady]);
 
     return (
-        <div className="relative h-[620px] w-full overflow-hidden rounded-[28px]">
+        <div className={`relative w-full overflow-hidden ${className}`}>
             <div ref={containerRef} className="h-full w-full" />
             {locationNotice && (
                 <div className="glass-panel pointer-events-none absolute bottom-4 left-1/2 z-[1000] -translate-x-1/2 rounded-full px-4 py-2 text-xs font-medium text-slate-100 shadow-lg">
