@@ -257,8 +257,8 @@ export default function Welcome({ laravelVersion, phpVersion }) {
 
                 <header className="relative z-10 mx-auto max-w-7xl px-4 pt-5 sm:px-6 lg:px-8">
                     <div className="flex flex-col gap-4 rounded-[28px] border border-white/10 bg-white/5 p-4 backdrop-blur-xl lg:flex-row lg:items-center lg:justify-between lg:p-5">
-                        <div className="flex items-center gap-4">
-                            <div className="rounded-2xl border border-white/10 bg-white/10 p-3 shadow-[0_12px_30px_rgba(2,6,23,0.3)]">
+                        <Link href="/" className="flex items-center gap-4 group transition-opacity duration-200 hover:opacity-95">
+                            <div className="rounded-2xl border border-white/10 bg-white/10 p-3 shadow-[0_12px_30px_rgba(2,6,23,0.3)] group-hover:border-cyan-500/30 transition-colors duration-300">
                                 <ApplicationLogo className="h-10 w-10 text-cyan-200" />
                             </div>
                             <div>
@@ -270,7 +270,7 @@ export default function Welcome({ laravelVersion, phpVersion }) {
                                     A polished front end for transit planning, live traffic, and graph-aware demos.
                                 </p>
                             </div>
-                        </div>
+                        </Link>
 
                         <div className="flex flex-wrap items-center gap-3">
                             <Link

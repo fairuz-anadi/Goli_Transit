@@ -10,6 +10,11 @@ class WelcomeController extends Controller
 {
     public function index(): InertiaResponse
     {
+        return Inertia::render('Landing');
+    }
+
+    public function planner(): InertiaResponse
+    {
         return Inertia::render('Welcome', [
             'laravelVersion' => app()->version(),
             'phpVersion' => phpversion(),
