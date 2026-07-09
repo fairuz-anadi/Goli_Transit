@@ -11,6 +11,8 @@ const PREFERENCES = [
     { value: 'low_complexity', label: 'Low complexity' },
 ];
 
+export const USER_LOCATION_START = '__user_location__';
+
 export default function RoutePlannerForm({
     nodes,
     start,
@@ -20,6 +22,7 @@ export default function RoutePlannerForm({
     preference,
     preferenceHint,
     plannerState,
+    userLocationReady,
     onStartChange,
     onDestinationChange,
     onSessionIdChange,
@@ -54,6 +57,13 @@ export default function RoutePlannerForm({
                         onChange={(event) => onStartChange(event.target.value)}
                         className="rounded-2xl border border-white/10 bg-slate-950/60 px-4 py-3 text-sm text-white outline-none focus:border-cyan-300/40"
                     >
+                        <option
+                            value={USER_LOCATION_START}
+                            disabled={!userLocationReady}
+                            title={userLocationReady ? undefined : 'Enable location to use this'}
+                        >
+                            {userLocationReady ? '📍 Your Location' : '📍 Your Location (unavailable)'}
+                        </option>
                         {nodes.map((node) => (
                             <option key={node.id} value={node.id}>
                                 {node.name}

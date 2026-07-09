@@ -52,6 +52,8 @@ function edgeLatLngs(edge, from, to) {
     ];
 }
 
+const USER_LOCATION_PANE = 'userLocationPane';
+
 class LiveMap {
     constructor(map) {
         this.map = map;
@@ -59,6 +61,16 @@ class LiveMap {
         this.edgeLayer = L.layerGroup().addTo(map);
         this.routeLayer = L.layerGroup().addTo(map);
         this.graph = { nodes: [], edges: [] };
+
+        // Dedicated pane so the "you are here" marker always sits above
+        // graph nodes/edges regardless of layer add order.
+        map.createPane(USER_LOCATION_PANE);
+        map.getPane(USER_LOCATION_PANE).style.zIndex = 650;
+
+        this.userLocationMarker = null;
+        this.userAccuracyCircle = null;
+        this.watchId = null;
+        this.lastFix = null;
     }
 
     clearMarkers() {
@@ -125,6 +137,132 @@ class LiveMap {
             const bounds = L.latLngBounds(nodes.map((node) => [node.lat, node.lng]));
             this.map.fitBounds(bounds, { padding: [60, 60] });
         }
+    }
+
+    setUserLocation(lat, lng, accuracy) {
+        const latLng = [lat, lng];
+
+        if (!this.userLocationMarker) {
+            const el = document.createElement('div');
+            el.className = 'live-map-you-are-here';
+            el.innerHTML = '<span class="live-map-you-are-here__pulse"></span><span class="live-map-you-are-here__dot"></span>';
+
+            const icon = L.divIcon({
+                html: el.outerHTML,
+                className: '',
+                iconSize: [18, 18],
+                iconAnchor: [9, 9],
+            });
+
+            this.userLocationMarker = L.marker(latLng, {
+                icon,
+                pane: USER_LOCATION_PANE,
+                zIndexOffset: 1000,
+            }).addTo(this.map);
+        } else {
+            this.userLocationMarker.setLatLng(latLng);
+        }
+
+        if (typeof accuracy === 'number' && Number.isFinite(accuracy)) {
+            if (!this.userAccuracyCircle) {
+                this.userAccuracyCircle = L.circle(latLng, {
+                    radius: accuracy,
+                    pane: USER_LOCATION_PANE,
+                    color: '#1a73e8',
+                    weight: 1,
+                    fillColor: '#1a73e8',
+                    fillOpacity: 0.15,
+                }).addTo(this.map);
+            } else {
+                this.userAccuracyCircle.setLatLng(latLng);
+                this.userAccuracyCircle.setRadius(accuracy);
+            }
+        } else if (this.userAccuracyCircle) {
+            this.userAccuracyCircle.remove();
+            this.userAccuracyCircle = null;
+        }
+    }
+
+    clearUserLocation() {
+        this.userLocationMarker?.remove();
+        this.userLocationMarker = null;
+        this.userAccuracyCircle?.remove();
+        this.userAccuracyCircle = null;
+    }
+
+    /**
+     * Starts tracking the browser's geolocation and keeps a single marker
+     * (plus optional accuracy circle) in sync with it via watchPosition.
+     * Callbacks let the caller (React) surface permission/support errors in
+     * the UI instead of failing silently.
+     */
+    startTrackingUserLocation({ onError, onSupportError, onFix, centerOnFirstFix = true } = {}) {
+        this.stopTrackingUserLocation();
+
+        if (!('geolocation' in navigator)) {
+            onSupportError?.(new Error('Geolocation is not supported by this browser.'));
+            return;
+        }
+
+        let firstFix = true;
+
+        this.watchId = navigator.geolocation.watchPosition(
+            (position) => {
+                const { latitude, longitude, accuracy } = position.coords;
+                this.setUserLocation(latitude, longitude, accuracy);
+                this.lastFix = { lat: latitude, lng: longitude, accuracy, timestamp: position.timestamp };
+                onFix?.(this.lastFix);
+
+                if (firstFix && centerOnFirstFix) {
+                    firstFix = false;
+                    this.map.setView([latitude, longitude], Math.max(this.map.getZoom(), 15));
+                }
+            },
+            (error) => {
+                onError?.(error);
+            },
+            {
+                enableHighAccuracy: true,
+                maximumAge: 5000,
+                timeout: 15000,
+            }
+        );
+    }
+
+    stopTrackingUserLocation() {
+        if (this.watchId !== null) {
+            navigator.geolocation.clearWatch(this.watchId);
+            this.watchId = null;
+        }
+    }
+
+    getLastFix() {
+        return this.lastFix;
+    }
+
+    /**
+     * Forces a fresh position fix (maximumAge: 0) instead of waiting for the
+     * next watchPosition tick - used before submitting a "start from my
+     * location" search when the cached fix has gone stale.
+     */
+    requestFreshFix() {
+        return new Promise((resolve, reject) => {
+            if (!('geolocation' in navigator)) {
+                reject(new Error('Geolocation is not supported by this browser.'));
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const { latitude, longitude, accuracy } = position.coords;
+                    this.setUserLocation(latitude, longitude, accuracy);
+                    this.lastFix = { lat: latitude, lng: longitude, accuracy, timestamp: position.timestamp };
+                    resolve(this.lastFix);
+                },
+                (error) => reject(error),
+                { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 }
+            );
+        });
     }
 
     renderRoute(path, segments) {
