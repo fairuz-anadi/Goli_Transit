@@ -15,7 +15,8 @@ use Inertia\Inertia;
 |
 */
 
-Route::get('/', [WelcomeController::class, 'index']);
+Route::get('/', [WelcomeController::class, 'index'])->name('landing');
+Route::get('/planner', [WelcomeController::class, 'planner'])->name('planner');
 Route::get('/control-room', [WelcomeController::class, 'controlRoom']);
 
 Route::get('/dashboard', function () {
