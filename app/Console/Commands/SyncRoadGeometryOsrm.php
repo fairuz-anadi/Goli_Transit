@@ -12,7 +12,9 @@ class SyncRoadGeometryOsrm extends Command
     protected $signature = 'golitransit:sync-road-geometry-osrm
                             {--dry-run : Show what would be fetched without writing the geometry file}';
 
-    protected $description = 'Fetch real road-following polylines from OSRM for each edge, for map rendering only';
+    protected $description = 'Fetch real road-following geometry, distance, and duration from OSRM for each edge';
+
+    protected const OUTPUT_FILE = 'road-geometry-osrm.json';
 
     public function handle(MapData $mapData, OsrmService $osrm)
     {
@@ -52,16 +54,23 @@ class SyncRoadGeometryOsrm extends Command
                 continue;
             }
 
-            $points = $osrm->getRoutePoints(
+            $profile = $this->profileFor($pair['sample_edge']);
+
+            $route = $osrm->getRoute(
                 $from['lat'],
                 $from['lng'],
                 $to['lat'],
                 $to['lng'],
-                $this->profileFor($pair['sample_edge'])
+                $profile
             );
 
-            if ($points !== null) {
-                $geometry[$key] = $points;
+            if ($route !== null) {
+                $geometry[$key] = [
+                    'points' => $route['points'],
+                    'distance_km' => $route['distance_km'],
+                    'duration_min' => $route['duration_min'],
+                    'profile' => $profile,
+                ];
                 $updated++;
             } else {
                 $skipped++;
@@ -81,12 +90,12 @@ class SyncRoadGeometryOsrm extends Command
         $this->info("{$mode}{$updated} road segments fetched, {$skipped} skipped (out of " . count($pairs) . " unique segments).");
 
         if (!$isDryRun) {
-            Storage::put('road-geometry.json', json_encode($geometry, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
-            $this->info('Saved to ' . Storage::path('road-geometry.json'));
+            Storage::put(self::OUTPUT_FILE, json_encode($geometry, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+            $this->info('Saved to ' . Storage::path(self::OUTPUT_FILE));
         }
 
         if ($skipped > 0) {
-            $this->warn('Skipped segments will fall back to a straight line on the map.');
+            $this->warn('Skipped segments will fall back to the hand-authored distance and a straight line on the map.');
         }
     }
 

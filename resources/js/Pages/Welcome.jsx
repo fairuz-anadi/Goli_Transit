@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import { Head, Link } from '@inertiajs/react';
 import LiveMapCanvas from '@/Components/LiveMap/LiveMapCanvas';
-import RoutePlannerForm from '@/Components/LiveMap/RoutePlannerForm';
+import RoutePlannerForm, { USER_LOCATION_START } from '@/Components/LiveMap/RoutePlannerForm';
 import JourneySteps from '@/Components/LiveMap/JourneySteps';
 import RouteInsights from '@/Components/LiveMap/RouteInsights';
 import { preferenceGuide } from '@/lib/routeNarration';
@@ -64,6 +64,22 @@ export default function Welcome({ laravelVersion, phpVersion }) {
         title: 'No disruption is active right now',
         body: 'If road pressure changes, this area will explain which corridor was affected and how the route responded.',
     });
+    const [userLocation, setUserLocation] = useState(null);
+    const liveMapCanvasRef = useRef(null);
+
+    const userLocationReady = Boolean(userLocation);
+
+    const displayGraph = useMemo(() => {
+        const startNode = currentRoute?.resolved_start_node;
+        const startEdges = currentRoute?.resolved_start_edges;
+
+        if (!startNode) return graph;
+
+        return {
+            nodes: [...graph.nodes, startNode],
+            edges: [...graph.edges, ...(startEdges ?? [])],
+        };
+    }, [graph, currentRoute]);
 
     function runRouteWith(payload) {
         setPlannerState('Computing route...');
@@ -131,9 +147,41 @@ export default function Welcome({ laravelVersion, phpVersion }) {
         setPreference(value);
     }
 
-    function handleSubmit() {
+    const STALE_FIX_MS = 30_000;
+
+    async function handleSubmit() {
         if (!allowedModes.length) {
             setPlannerState('Select at least one travel mode');
+            return;
+        }
+
+        if (start === USER_LOCATION_START) {
+            if (!userLocation) {
+                setPlannerState('Waiting for a location fix...');
+                return;
+            }
+
+            let fix = userLocation;
+
+            if (Date.now() - fix.timestamp > STALE_FIX_MS) {
+                setPlannerState('Refreshing your location...');
+                try {
+                    fix = await liveMapCanvasRef.current?.requestFreshFix();
+                    setUserLocation(fix);
+                } catch (error) {
+                    setPlannerState('Could not refresh your location');
+                    return;
+                }
+            }
+
+            runRouteWith({
+                session_id: sessionId || undefined,
+                start: USER_LOCATION_START,
+                start_lat: fix.lat,
+                start_lng: fix.lng,
+                destination,
+                allowed_modes: allowedModes,
+            });
             return;
         }
 
@@ -271,6 +319,7 @@ export default function Welcome({ laravelVersion, phpVersion }) {
                             preference={preference}
                             preferenceHint={preferenceGuide(preference)}
                             plannerState={plannerState}
+                            userLocationReady={userLocationReady}
                             onStartChange={setStart}
                             onDestinationChange={setDestination}
                             onSessionIdChange={setSessionId}
@@ -298,7 +347,12 @@ export default function Welcome({ laravelVersion, phpVersion }) {
                             </div>
 
                             <div className="mt-5 overflow-hidden rounded-[28px] border border-white/10">
-                                <LiveMapCanvas graph={graph} route={currentRoute} />
+                                <LiveMapCanvas
+                                    ref={liveMapCanvasRef}
+                                    graph={displayGraph}
+                                    route={currentRoute}
+                                    onLocationFix={setUserLocation}
+                                />
                             </div>
 
                             <div className="mt-4 rounded-2xl border border-amber-300/10 bg-amber-300/5 p-4">
@@ -309,11 +363,11 @@ export default function Welcome({ laravelVersion, phpVersion }) {
                     </section>
 
                     <section className="mt-6">
-                        <JourneySteps route={currentRoute} nodes={graph.nodes} />
+                        <JourneySteps route={currentRoute} nodes={displayGraph.nodes} />
                     </section>
 
                     <section className="mt-6">
-                        <RouteInsights route={currentRoute} previousRoute={previousRoute} preference={preference} nodes={graph.nodes} />
+                        <RouteInsights route={currentRoute} previousRoute={previousRoute} preference={preference} nodes={displayGraph.nodes} />
                     </section>
 
                     <section className="mt-6 grid gap-6 lg:grid-cols-3">
