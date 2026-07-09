@@ -1,3 +1,5 @@
+import React from 'react';
+
 const MODES = [
     { value: 'car', label: 'Car', hint: 'Best for major roads' },
     { value: 'rickshaw', label: 'Rickshaw', hint: 'Useful for tighter corridors' },
@@ -32,13 +34,13 @@ export default function RoutePlannerForm({
     onReset,
 }) {
     return (
-        <div className="rounded-[32px] border border-white/10 bg-white/5 p-6 shadow-[0_30px_120px_rgba(2,6,23,0.45)] backdrop-blur-xl sm:p-8">
+        <div className="rounded-[32px] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
             <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                    <p className="text-[0.7rem] uppercase tracking-[0.32em] text-slate-400">Trip input</p>
-                    <h3 className="mt-2 text-2xl font-semibold tracking-tight text-white">Find my best journey</h3>
+                    <p className="text-[0.7rem] uppercase tracking-[0.32em] text-slate-500 font-semibold">Trip input</p>
+                    <h3 className="mt-2 text-2xl font-bold tracking-tight text-slate-900">Find my best journey</h3>
                 </div>
-                <span className="rounded-full border border-emerald-300/20 bg-emerald-300/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-emerald-100">
+                <span className="rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-cyan-800">
                     {plannerState}
                 </span>
             </div>
@@ -50,12 +52,12 @@ export default function RoutePlannerForm({
                     onSubmit();
                 }}
             >
-                <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                <label className="grid gap-2 text-sm font-semibold text-slate-700">
                     Start
                     <select
                         value={start}
                         onChange={(event) => onStartChange(event.target.value)}
-                        className="rounded-2xl border border-white/10 bg-slate-950/60 px-4 py-3 text-sm text-white outline-none focus:border-cyan-300/40"
+                        className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-cyan-500/50"
                     >
                         <option
                             value={USER_LOCATION_START}
@@ -72,12 +74,12 @@ export default function RoutePlannerForm({
                     </select>
                 </label>
 
-                <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                <label className="grid gap-2 text-sm font-semibold text-slate-700">
                     Destination
                     <select
                         value={destination}
                         onChange={(event) => onDestinationChange(event.target.value)}
-                        className="rounded-2xl border border-white/10 bg-slate-950/60 px-4 py-3 text-sm text-white outline-none focus:border-cyan-300/40"
+                        className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-cyan-500/50"
                     >
                         {nodes.map((node) => (
                             <option key={node.id} value={node.id}>
@@ -88,22 +90,22 @@ export default function RoutePlannerForm({
                 </label>
 
                 <fieldset className="grid gap-3">
-                    <legend className="text-sm font-semibold text-slate-200">Allowed modes</legend>
+                    <legend className="text-sm font-semibold text-slate-700">Allowed modes</legend>
                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                         {MODES.map((mode) => (
                             <label
                                 key={mode.value}
-                                className="flex min-h-[4.5rem] items-center gap-3 rounded-2xl border border-white/10 bg-slate-950/50 px-4 py-3 text-sm text-slate-200"
+                                className="flex min-h-[4.5rem] items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 shadow-sm hover:border-cyan-500/30 transition duration-200 cursor-pointer"
                             >
                                 <input
                                     type="checkbox"
                                     checked={allowedModes.includes(mode.value)}
                                     onChange={() => onModeToggle(mode.value)}
-                                    className="h-4 w-4 shrink-0 accent-cyan-400"
+                                    className="h-4 w-4 shrink-0 accent-cyan-600"
                                 />
                                 <span>
-                                    <strong className="block text-white">{mode.label}</strong>
-                                    <span className="text-xs text-slate-400">{mode.hint}</span>
+                                    <strong className="block text-slate-900">{mode.label}</strong>
+                                    <span className="text-xs text-slate-500">{mode.hint}</span>
                                 </span>
                             </label>
                         ))}
@@ -117,39 +119,39 @@ export default function RoutePlannerForm({
                             type="button"
                             onClick={() => onPreferenceChange(item.value)}
                             className={[
-                                'rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] transition',
+                                'rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] transition shadow-sm',
                                 preference === item.value
-                                    ? 'border-cyan-300/40 bg-cyan-300/10 text-cyan-100'
-                                    : 'border-white/10 bg-white/5 text-slate-300 hover:bg-white/10',
+                                    ? 'border-cyan-200 bg-cyan-50 text-cyan-800'
+                                    : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50',
                             ].join(' ')}
                         >
                             {item.label}
                         </button>
                     ))}
                 </div>
-                <p className="text-sm leading-6 text-slate-400">{preferenceHint}</p>
+                <p className="text-sm leading-6 text-slate-500">{preferenceHint}</p>
 
-                <label className="grid gap-2 text-sm font-semibold text-slate-200">
+                <label className="grid gap-2 text-sm font-semibold text-slate-700">
                     Trip reference
                     <input
                         value={sessionId}
                         onChange={(event) => onSessionIdChange(event.target.value)}
                         autoComplete="off"
-                        className="rounded-2xl border border-white/10 bg-slate-950/60 px-4 py-3 text-sm text-white outline-none focus:border-cyan-300/40"
+                        className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-cyan-500/50"
                     />
                 </label>
 
                 <div className="flex flex-wrap gap-3">
                     <button
                         type="submit"
-                        className="inline-flex items-center rounded-full bg-white px-6 py-3 text-sm font-semibold text-slate-950 transition hover:-translate-y-0.5 hover:bg-cyan-100"
+                        className="inline-flex items-center rounded-full bg-cyan-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-cyan-700"
                     >
                         Plan trip
                     </button>
                     <button
                         type="button"
                         onClick={onReset}
-                        className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-6 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-white/10"
+                        className="inline-flex items-center rounded-full border border-slate-200 bg-white px-6 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-50"
                     >
                         Use demo route
                     </button>
