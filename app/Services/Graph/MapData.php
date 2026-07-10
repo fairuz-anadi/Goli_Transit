@@ -291,6 +291,24 @@ class MapData
             $this->edge('edge_kalyanpur_mirpur_1', 'kalyanpur', 'mirpur_1', 4, 1.4, true, true, true),
             $this->edge('edge_kalyanpur_shamoli', 'kalyanpur', 'shamoli', 4, 1.6, true, true, true),
             $this->edge('edge_shamoli_kalyanpur', 'shamoli', 'kalyanpur', 4, 1.6, true, true, true),
+
+            // Sparse-graph test batch: a handful of real, currently-missing direct
+            // road connections between EXISTING nodes only (no new nodes added).
+            // distance_km values below are placeholders pending the OSRM distance
+            // sync (--missing-only); GraphManager overrides them with real road
+            // distance once synced.
+            $this->edge('edge_gulshan_2_banani', 'gulshan_2', 'banani', 2, 0.5, true, true, true),
+            $this->edge('edge_banani_gulshan_2', 'banani', 'gulshan_2', 2, 0.5, true, true, true),
+            $this->edge('edge_dhanmondi_27_dhanmondi_lake', 'dhanmondi_27', 'dhanmondi_lake', 2, 0.6, true, true, true),
+            $this->edge('edge_dhanmondi_lake_dhanmondi_27', 'dhanmondi_lake', 'dhanmondi_27', 2, 0.6, true, true, true),
+            $this->edge('edge_karwan_bazar_panthapath', 'karwan_bazar', 'panthapath', 3, 1.0, true, true, true),
+            $this->edge('edge_panthapath_karwan_bazar', 'panthapath', 'karwan_bazar', 3, 1.0, true, true, true),
+            $this->edge('edge_farmgate_tejgaon', 'farmgate', 'tejgaon', 4, 1.2, true, true, true),
+            $this->edge('edge_tejgaon_farmgate', 'tejgaon', 'farmgate', 4, 1.2, true, true, true),
+            $this->edge('edge_shahbagh_science_lab', 'shahbagh', 'science_lab', 4, 1.3, true, true, true),
+            $this->edge('edge_science_lab_shahbagh', 'science_lab', 'shahbagh', 4, 1.3, true, true, true),
+            $this->edge('edge_moghbazar_shantinagar', 'moghbazar', 'shantinagar', 4, 1.3, true, true, true),
+            $this->edge('edge_shantinagar_moghbazar', 'shantinagar', 'moghbazar', 4, 1.3, true, true, true),
         ];
     }
 

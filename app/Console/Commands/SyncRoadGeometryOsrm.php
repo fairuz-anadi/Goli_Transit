@@ -10,7 +10,8 @@ use Illuminate\Support\Facades\Storage;
 class SyncRoadGeometryOsrm extends Command
 {
     protected $signature = 'golitransit:sync-road-geometry-osrm
-                            {--dry-run : Show what would be fetched without writing the geometry file}';
+                            {--dry-run : Show what would be fetched without writing the geometry file}
+                            {--missing-only : Only fetch pairs not already present in the existing geometry file, merging into it instead of overwriting}';
 
     protected $description = 'Fetch real road-following geometry, distance, and duration from OSRM for each edge';
 
@@ -37,14 +38,29 @@ class SyncRoadGeometryOsrm extends Command
         }
 
         $isDryRun = (bool) $this->option('dry-run');
+        $missingOnly = (bool) $this->option('missing-only');
+
+        $existingGeometry = [];
+        if ($missingOnly && Storage::exists(self::OUTPUT_FILE)) {
+            $decoded = json_decode(Storage::get(self::OUTPUT_FILE), true);
+            $existingGeometry = is_array($decoded) ? $decoded : [];
+        }
+
         $geometry = [];
         $updated = 0;
         $skipped = 0;
+        $alreadyPresent = 0;
 
         $bar = $this->output->createProgressBar(count($pairs));
         $bar->start();
 
         foreach ($pairs as $key => $pair) {
+            if ($missingOnly && isset($existingGeometry[$key])) {
+                $alreadyPresent++;
+                $bar->advance();
+                continue;
+            }
+
             $from = $nodeIndex[$pair['from']] ?? null;
             $to = $nodeIndex[$pair['to']] ?? null;
 
@@ -87,10 +103,12 @@ class SyncRoadGeometryOsrm extends Command
         $this->newLine(2);
 
         $mode = $isDryRun ? '[DRY RUN] ' : '';
-        $this->info("{$mode}{$updated} road segments fetched, {$skipped} skipped (out of " . count($pairs) . " unique segments).");
+        $presentNote = $missingOnly ? ", {$alreadyPresent} already present (untouched)" : '';
+        $this->info("{$mode}{$updated} road segments fetched, {$skipped} skipped{$presentNote} (out of " . count($pairs) . " unique segments).");
 
         if (!$isDryRun) {
-            Storage::put(self::OUTPUT_FILE, json_encode($geometry, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+            $finalGeometry = $missingOnly ? array_merge($existingGeometry, $geometry) : $geometry;
+            Storage::put(self::OUTPUT_FILE, json_encode($finalGeometry, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
             $this->info('Saved to ' . Storage::path(self::OUTPUT_FILE));
         }
 
