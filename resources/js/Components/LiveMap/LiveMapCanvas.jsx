@@ -8,7 +8,7 @@ function locationErrorStatus(error) {
     return 'error';
 }
 
-const LiveMapCanvas = forwardRef(function LiveMapCanvas({ graph, route, onLocationFix, onLocationStatusChange, className = 'h-[620px] rounded-[28px]' }, ref) {
+const LiveMapCanvas = forwardRef(function LiveMapCanvas({ graph, route, onLocationFix, onLocationStatusChange, trackUserLocation = true, mapOptions, className = 'h-[620px] rounded-[28px]' }, ref) {
     const containerRef = useRef(null);
     const liveMapRef = useRef(null);
     const [mapReady, setMapReady] = useState(false);
@@ -22,7 +22,7 @@ const LiveMapCanvas = forwardRef(function LiveMapCanvas({ graph, route, onLocati
     useEffect(() => {
         let cancelled = false;
 
-        initLiveMap(containerRef.current)
+        initLiveMap(containerRef.current, mapOptions)
             .then((liveMap) => {
                 if (cancelled) return;
                 liveMapRef.current = liveMap;
@@ -49,7 +49,7 @@ const LiveMapCanvas = forwardRef(function LiveMapCanvas({ graph, route, onLocati
     }, [mapReady, graph, route]);
 
     useEffect(() => {
-        if (!mapReady) return;
+        if (!mapReady || !trackUserLocation) return;
 
         const liveMap = liveMapRef.current;
 
@@ -82,7 +82,7 @@ const LiveMapCanvas = forwardRef(function LiveMapCanvas({ graph, route, onLocati
         // intentionally excluded so passing new function identities doesn't
         // restart the geolocation watch.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [mapReady]);
+    }, [mapReady, trackUserLocation]);
 
     return (
         <div className={`relative w-full overflow-hidden ${className}`}>

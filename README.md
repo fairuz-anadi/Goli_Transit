@@ -348,6 +348,12 @@ Run locally:
 php artisan serve
 ```
 
+> If you ever see `file_put_contents(...storage/framework/sessions/...): Failed to open stream`,
+> the `storage/framework/{sessions,views,cache/data,testing}` directories are missing (e.g. you
+> wiped `storage/` locally). Laravel needs them to exist and write-protects them from `.gitignore`
+> everywhere except a placeholder `.gitignore` file, so `git checkout -- storage/framework` (or
+> re-cloning) restores them.
+
 Useful checks:
 
 ```bash
