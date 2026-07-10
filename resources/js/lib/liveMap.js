@@ -293,6 +293,7 @@ export async function initLiveMap(container, options = {}) {
     const map = L.map(container, {
         center: options.center || DHAKA_CENTER,
         zoom: options.zoom || DEFAULT_ZOOM,
+        scrollWheelZoom: options.scrollWheelZoom !== false,
     });
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {

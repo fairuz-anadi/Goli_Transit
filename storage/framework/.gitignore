@@ -1,3 +1,13 @@
-*
-!data/
-!.gitignore
+compiled.php
+config.php
+down
+events.scanned.php
+maintenance.php
+routes.scanned.php
+schedule-*
+sessions/*
+testing/*
+views/*
+!sessions/.gitignore
+!testing/.gitignore
+!views/.gitignore
