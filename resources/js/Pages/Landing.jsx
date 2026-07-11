@@ -143,9 +143,10 @@ export default function Landing() {
             <div className="relative min-h-screen flex flex-col overflow-x-hidden bg-white text-slate-900">
                 {/* Background decorations */}
                 <div className="pointer-events-none absolute inset-0">
-                    <div className="absolute -top-40 -right-40 h-[500px] w-[500px] rounded-full bg-gradient-to-br from-cyan-100/60 to-transparent blur-3xl" />
-                    <div className="absolute top-[720px] -left-40 h-[400px] w-[400px] rounded-full bg-gradient-to-tr from-blue-100/40 to-transparent blur-3xl" />
-                    <div className="absolute top-[1400px] left-1/2 -translate-x-1/2 h-[300px] w-[600px] rounded-full bg-gradient-to-r from-emerald-50/30 to-cyan-50/30 blur-3xl" />
+                    <div className="absolute -top-40 -right-40 h-[550px] w-[550px] rounded-full bg-gradient-to-br from-cyan-300/50 via-teal-200/40 to-transparent blur-3xl" />
+                    <div className="absolute top-[680px] -left-48 h-[450px] w-[450px] rounded-full bg-gradient-to-tr from-emerald-300/40 via-cyan-200/30 to-transparent blur-3xl" />
+                    <div className="absolute top-[1350px] left-1/2 -translate-x-1/2 h-[320px] w-[680px] rounded-full bg-gradient-to-r from-amber-200/30 via-emerald-200/30 to-cyan-200/30 blur-3xl" />
+                    <div className="absolute top-[200px] left-1/3 h-[280px] w-[280px] rounded-full bg-gradient-to-br from-fuchsia-200/20 to-transparent blur-3xl" />
                 </div>
                 <div className="pointer-events-none absolute inset-0 opacity-[0.025] [background-image:linear-gradient(rgba(0,0,0,.5)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,.5)_1px,transparent_1px)] [background-size:56px_56px]" />
 
@@ -153,11 +154,13 @@ export default function Landing() {
                 <nav className="sticky top-0 z-30 border-b border-slate-100/80 bg-white/70 backdrop-blur-xl animate-fade-in">
                     <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
                         <div className="flex items-center gap-3">
-                            <div className="rounded-xl border border-slate-200 bg-white p-2 shadow-sm">
-                                <ApplicationLogo className="h-7 w-7 text-cyan-600" />
+                            <div className="relative rounded-xl bg-gradient-to-br from-cyan-50 via-teal-50 to-emerald-50 p-1.5 shadow-sm ring-1 ring-teal-200/70">
+                                <ApplicationLogo className="h-8 w-8" />
                             </div>
                             <div>
-                                <span className="text-sm font-bold tracking-tight text-slate-900">GoliTransit</span>
+                                <span className="text-sm font-black tracking-tight text-slate-900">
+                                    Goli<span className="bg-gradient-to-r from-teal-600 to-emerald-600 bg-clip-text text-transparent">Transit</span>
+                                </span>
                                 <span className="ml-2 text-[0.6rem] uppercase tracking-[0.2em] text-slate-400 hidden sm:inline">Dhaka Transit</span>
                             </div>
                         </div>
@@ -190,14 +193,14 @@ export default function Landing() {
                     <section className="flex flex-col items-center px-6 pt-16 pb-8 text-center">
                         <div className="max-w-3xl mx-auto">
                             <div className="mb-8 animate-fade-in-up">
-                                <div className="inline-flex items-center gap-2 rounded-full border border-cyan-200 bg-cyan-50 px-4 py-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-cyan-700">
-                                    <span className="h-1.5 w-1.5 rounded-full bg-cyan-500 animate-pulse" />
+                                <div className="inline-flex items-center gap-2 rounded-full border border-teal-200 bg-gradient-to-r from-cyan-50 via-teal-50 to-emerald-50 px-4 py-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-teal-700 shadow-sm shadow-teal-200/50">
+                                    <span className="h-1.5 w-1.5 rounded-full bg-gradient-to-r from-cyan-500 to-emerald-500 animate-pulse" />
                                     Live in Dhaka · Real street-level graph
                                 </div>
                             </div>
 
                             <h1 className="text-5xl md:text-6xl lg:text-7xl font-black tracking-tight text-slate-900 animate-fade-in-up delay-100">
-                                Goli<span className="bg-gradient-to-r from-cyan-600 to-emerald-600 bg-clip-text text-transparent">Transit</span>
+                                Goli<span className="bg-gradient-to-r from-cyan-500 via-teal-500 to-emerald-500 bg-clip-text text-transparent">Transit</span>
                             </h1>
 
                             <p className="mt-5 max-w-lg mx-auto text-base md:text-lg text-slate-500 leading-relaxed animate-fade-in-up delay-200">
@@ -207,14 +210,14 @@ export default function Landing() {
                             <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 animate-fade-in-up delay-300">
                                 <Link
                                     href="/planner"
-                                    className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-cyan-600 to-emerald-600 px-7 py-3.5 text-sm font-semibold text-white shadow-lg shadow-cyan-600/20 transition hover:-translate-y-0.5 hover:shadow-xl hover:shadow-cyan-600/25"
+                                    className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-cyan-500 via-teal-500 to-emerald-500 px-7 py-3.5 text-sm font-semibold text-white shadow-lg shadow-teal-500/30 transition hover:-translate-y-0.5 hover:shadow-xl hover:shadow-teal-500/40"
                                 >
                                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" /></svg>
                                     Plan a Route
                                 </Link>
                                 <Link
                                     href="/control-room"
-                                    className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-7 py-3.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-md"
+                                    className="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 px-7 py-3.5 text-sm font-semibold text-amber-800 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md hover:shadow-amber-200/50"
                                 >
                                     Control Room
                                 </Link>
@@ -391,8 +394,10 @@ export default function Landing() {
                     <div className="mx-auto max-w-6xl flex flex-col gap-6 px-6 py-10 sm:flex-row sm:items-start sm:justify-between">
                         <div>
                             <div className="flex items-center gap-2">
-                                <ApplicationLogo className="h-5 w-5 text-cyan-600" />
-                                <span className="text-sm font-bold text-slate-900">GoliTransit</span>
+                                <ApplicationLogo className="h-6 w-6" />
+                                <span className="text-sm font-bold text-slate-900">
+                                    Goli<span className="bg-gradient-to-r from-teal-600 to-emerald-600 bg-clip-text text-transparent">Transit</span>
+                                </span>
                             </div>
                             <p className="mt-2 max-w-xs text-xs text-slate-400 leading-relaxed">Hyperlocal, multi-modal route planning built for Dhaka's streets and golis.</p>
                         </div>
