@@ -2,24 +2,19 @@ import { useId } from 'react';
 
 export default function ApplicationLogo({ className, ...props }) {
     const uid = useId().replace(/[:]/g, '');
-    const gradId = `gt-grad-${uid}`;
-    const glowId = `gt-glow-${uid}`;
-    const bgId = `gt-bg-${uid}`;
+    const pinGradId = `gt-pin-${uid}`;
+    const ringGlowId = `gt-ring-glow-${uid}`;
 
     return (
         <svg className={className} {...props} viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg" fill="none">
             <defs>
-                <linearGradient id={gradId} x1="10" y1="10" x2="62" y2="62" gradientUnits="userSpaceOnUse">
-                    <stop offset="0%" stopColor="#22d3ee" />
-                    <stop offset="55%" stopColor="#0891b2" />
-                    <stop offset="100%" stopColor="#10b981" />
+                <linearGradient id={pinGradId} x1="10" y1="6" x2="58" y2="66" gradientUnits="userSpaceOnUse">
+                    <stop offset="0%" stopColor="#2dd4bf" />
+                    <stop offset="45%" stopColor="#0d9488" />
+                    <stop offset="100%" stopColor="#0f766e" />
                 </linearGradient>
-                <radialGradient id={bgId} cx="30%" cy="25%" r="80%">
-                    <stop offset="0%" stopColor="#22d3ee" stopOpacity="0.16" />
-                    <stop offset="100%" stopColor="#22d3ee" stopOpacity="0" />
-                </radialGradient>
-                <filter id={glowId} x="-60%" y="-60%" width="220%" height="220%">
-                    <feGaussianBlur stdDeviation="2" result="blur" />
+                <filter id={ringGlowId} x="-60%" y="-60%" width="220%" height="220%">
+                    <feGaussianBlur stdDeviation="1.4" result="blur" />
                     <feMerge>
                         <feMergeNode in="blur" />
                         <feMergeNode in="SourceGraphic" />
@@ -27,44 +22,37 @@ export default function ApplicationLogo({ className, ...props }) {
                 </filter>
             </defs>
 
-            {/* Badge shell */}
-            <rect x="3" y="3" width="66" height="66" rx="19" fill={`url(#${bgId})`} stroke={`url(#${gradId})`} strokeWidth="1.4" strokeOpacity="0.55" />
-            <rect x="7.5" y="7.5" width="57" height="57" rx="14.5" fill="none" stroke="currentColor" strokeOpacity="0.08" />
-
-            {/* Faint alt-route */}
+            {/* Pin body */}
             <path
-                d="M16 22C23 24.5 30 28.5 36 34C42 39.5 49.5 44.5 58 47.5"
-                stroke="currentColor"
-                strokeOpacity="0.2"
-                strokeWidth="3"
-                strokeLinecap="round"
-                strokeDasharray="1 7"
+                d="M36 3C19.98 3 7 15.98 7 32c0 20.5 25.4 35.6 27.7 36.9a2.5 2.5 0 0 0 2.6 0C39.6 67.6 65 52.5 65 32 65 15.98 52.02 3 36 3z"
+                fill={`url(#${pinGradId})`}
+            />
+            {/* Subtle top sheen */}
+            <path
+                d="M36 3C19.98 3 7 15.98 7 32c0 3.2.42 6.24 1.2 9.1C10.6 24.9 22 12 36 12c14 0 25.4 12.9 27.8 29.1.78-2.86 1.2-5.9 1.2-9.1C65 15.98 52.02 3 36 3z"
+                fill="white"
+                fillOpacity="0.14"
             />
 
-            {/* Primary route - glowing gradient */}
-            <path
-                d="M16 51C23.5 40 30.5 33 39.5 25.5C45.5 20.5 52 18 58 19"
-                stroke={`url(#${gradId})`}
-                strokeWidth="4.75"
-                strokeLinecap="round"
-                filter={`url(#${glowId})`}
-            />
+            {/* Inner dark disc (road map core) */}
+            <circle cx="36" cy="31" r="17" fill="#0b1b1e" fillOpacity="0.92" />
 
-            {/* Start node */}
-            <circle cx="16" cy="51" r="4.5" fill={`url(#${gradId})`} />
+            {/* Cross streets */}
+            <path d="M36 15v32M20 31h32" stroke="white" strokeOpacity="0.85" strokeWidth="3" strokeLinecap="round" />
+            {/* Diagonal goli (alley) route */}
+            <path d="M25 24l9 7 9-3.5" stroke="#fbbf24" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="1 5.5" />
+            {/* Alt curved route */}
+            <path d="M24 38c4-1 7-3.5 8-7" stroke="#2dd4bf" strokeWidth="2.25" strokeLinecap="round" strokeDasharray="1 5" />
 
-            {/* Interchange hub node - halo ring */}
-            <circle cx="39.5" cy="25.5" r="9" fill="none" stroke={`url(#${gradId})`} strokeOpacity="0.28" strokeWidth="1.2" />
-            <circle cx="39.5" cy="25.5" r="5.25" fill={`url(#${gradId})`} filter={`url(#${glowId})`} />
+            {/* Hub / intersection node */}
+            <circle cx="36" cy="31" r="4.5" fill="white" />
+            <circle cx="36" cy="31" r="4.5" fill="none" stroke={`url(#${pinGradId})`} strokeWidth="1.6" filter={`url(#${ringGlowId})`} />
 
-            {/* Destination node */}
-            <circle cx="58" cy="19" r="4.5" fill="currentColor" />
-
-            {/* Live pulse marker */}
-            <circle cx="58" cy="48" r="3.25" fill="#fb923c" />
-            <circle cx="58" cy="48" r="3.25" fill="#fb923c" opacity="0.55">
-                <animate attributeName="r" values="3.25;8;3.25" dur="2.4s" repeatCount="indefinite" />
-                <animate attributeName="opacity" values="0.55;0;0.55" dur="2.4s" repeatCount="indefinite" />
+            {/* Live location pulse marker on the stem */}
+            <circle cx="36" cy="58" r="3" fill="#fb923c" />
+            <circle cx="36" cy="58" r="3" fill="#fb923c" opacity="0.55">
+                <animate attributeName="r" values="3;7.5;3" dur="2.2s" repeatCount="indefinite" />
+                <animate attributeName="opacity" values="0.55;0;0.55" dur="2.2s" repeatCount="indefinite" />
             </circle>
         </svg>
     );
