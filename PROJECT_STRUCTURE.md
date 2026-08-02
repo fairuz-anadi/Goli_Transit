@@ -52,13 +52,21 @@ Goli Transit is a Laravel + React application for multi-modal routing and anomal
 - `POST /api/route` → `RouteController`
 - `POST /api/anomaly` → `AnomalyController`
 - `GET /api/graph/snapshot` → `GraphSnapshotController`
+- `POST /api/graph/reset` → `GraphResetController`
 - `GET /internal/sync-traffic` → `InternalSyncController`
 
 ### Web Routes (`routes/web.php`)
-- `GET /` → `WelcomeController@index`
-- `GET /control-room` → `WelcomeController@controlRoom`
-- `GET /dashboard` → authenticated Inertia dashboard
-- `GET /health` → simple JSON health check
+Every web route renders an Inertia/React page from `resources/js/Pages`.
+
+- `GET /` → `WelcomeController@index` (Landing)
+- `GET /planner` → `WelcomeController@planner` (Welcome)
+- `GET /control-room` → `WelcomeController@controlRoom` (ControlRoom)
+- `GET /network` → `WelcomeController@network` (Network)
+- `GET /status` → `WelcomeController@status` (Status)
+- `GET /api-docs` → `WelcomeController@apiDocs` (ApiDocs)
+- `GET /about` → `WelcomeController@about` (About)
+- `GET /dashboard` → Inertia dashboard
+- `GET /health` → simple JSON health check (the only non-page route)
 
 ## Backend Details
 
@@ -70,7 +78,12 @@ Goli Transit is a Laravel + React application for multi-modal routing and anomal
 ## Frontend Details
 
 - React + Inertia.js frontend under `resources/js`
-- Legacy or public demo assets under `frontend/` and `public/`
+  - `Pages/` - one file per route, resolved by name from `WelcomeController`
+  - `Layouts/AppLayout.jsx` - shared nav, page header, and footer
+  - `Components/Ui/` - Panel, Pill, StatTile, CodeBlock primitives
+  - `Components/LiveMap/` - Leaflet map canvas and route panels
+  - `lib/api.js` - typed wrapper around the JSON API used by every page
+- Standalone concept deck under `frontend/` (not served by the app)
 - `postcss.config.js` and `tailwind.config.js` configure styling
 
 ## Dependencies
@@ -111,5 +124,8 @@ Goli Transit is a Laravel + React application for multi-modal routing and anomal
 
 ## Notes
 - The repository contains the full `vendor/` directory, so most PHP dependencies are already present.
-- The public demo includes `control-room.html` for visualization and live exploration.
+- The Control Room is a React page (`resources/js/Pages/ControlRoom.jsx`); the old
+  `public/control-room.html` and its `public/js/live-map.js` helper were removed.
+- `public/index.php` is a shim over `bootstrap/http-entry.php` and is excluded from
+  Vercel via `.vercelignore` — see the deployment notes in `README.md`.
 - Custom route planning logic is driven by `config/golitransit.php` and service classes in `app/Services`.

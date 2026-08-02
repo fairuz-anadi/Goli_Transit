@@ -3,10 +3,14 @@
 namespace App\Services\Graph;
 
 use App\Services\Routing\TransportModePolicy;
+use Illuminate\Support\Facades\Cache;
 use RuntimeException;
 
 class GraphManager
 {
+    /** Where live (anomaly- or traffic-adjusted) edge weights survive between requests. */
+    protected const WEIGHTS_CACHE_KEY = 'golitransit:current_weights';
+
     protected static ?array $graph = null;
     protected static ?array $roadGeometry = null;
     protected static ?array $osrmRoadMetrics = null;
@@ -20,7 +24,7 @@ class GraphManager
 
     public function resetGraph(): void
     {
-        $cachedWeights = \Illuminate\Support\Facades\Cache::get('golitransit:current_weights', []);
+        $cachedWeights = Cache::get(self::WEIGHTS_CACHE_KEY, []);
 
         static::$graph = [
             'nodes' => $this->mapData->getNodes(),
@@ -232,9 +236,9 @@ class GraphManager
         }
         unset($edge);
 
-        $cachedWeights = \Illuminate\Support\Facades\Cache::get('golitransit:current_weights', []);
+        $cachedWeights = Cache::get(self::WEIGHTS_CACHE_KEY, []);
         $cachedWeights[$edgeId] = $weight;
-        \Illuminate\Support\Facades\Cache::put('golitransit:current_weights', $cachedWeights, now()->addHours(6));
+        Cache::put(self::WEIGHTS_CACHE_KEY, $cachedWeights, now()->addHours(6));
     }
 
     public function getNeighbours(string $nodeId, string $mode): array
@@ -277,7 +281,42 @@ class GraphManager
         }
         unset($edge);
 
+        // Persist alongside setCurrentWeight()'s values. static::$graph only
+        // lives for the current request, so without this the anomaly would be
+        // gone by the time the next /api/graph/snapshot or /api/route call
+        // arrives - the demo flow depends on the inflated weights surviving.
+        $this->persistCurrentWeights($affected);
+
         return $affected;
+    }
+
+    /**
+     * Drop every persisted weight override and rebuild the graph from MapData,
+     * returning it to its base state. This is what makes the anomaly demo
+     * repeatable instead of leaving the city congested until the cache expires.
+     */
+    public function clearCurrentWeights(): void
+    {
+        Cache::forget(self::WEIGHTS_CACHE_KEY);
+        $this->resetGraph();
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $edges
+     */
+    protected function persistCurrentWeights(array $edges): void
+    {
+        if ($edges === []) {
+            return;
+        }
+
+        $cachedWeights = Cache::get(self::WEIGHTS_CACHE_KEY, []);
+
+        foreach ($edges as $edge) {
+            $cachedWeights[$edge['id']] = $edge['current_weight'];
+        }
+
+        Cache::put(self::WEIGHTS_CACHE_KEY, $cachedWeights, now()->addHours(6));
     }
 
     protected function getNodeIndex(): array
