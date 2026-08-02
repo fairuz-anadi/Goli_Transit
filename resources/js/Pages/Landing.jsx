@@ -25,6 +25,14 @@ const NAV_LINKS = [
     { href: '#features', label: 'Features' },
 ];
 
+// Real pages, as opposed to the in-page anchors above.
+const PAGE_LINKS = [
+    { href: '/control-room', label: 'Control Room' },
+    { href: '/network', label: 'Network' },
+    { href: '/status', label: 'Status' },
+    { href: '/about', label: 'About' },
+];
+
 const STEPS = [
     {
         title: 'Set your start & destination',
@@ -88,6 +96,30 @@ const FEATURES = [
         cta: 'View',
         accent: 'violet',
         icon: <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />,
+    },
+    {
+        href: '/network',
+        title: 'Network Explorer',
+        desc: 'Search and filter every node and edge in the live graph, with mode permissions.',
+        cta: 'Browse',
+        accent: 'cyan',
+        icon: <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 010 5.656l-3 3a4 4 0 01-5.656-5.656l1.5-1.5M10.172 13.828a4 4 0 010-5.656l3-3a4 4 0 015.656 5.656l-1.5 1.5" />,
+    },
+    {
+        href: '/status',
+        title: 'System Status',
+        desc: 'Live health and latency for every endpoint, checked from your own browser.',
+        cta: 'Check',
+        accent: 'emerald',
+        icon: <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />,
+    },
+    {
+        href: '/api-docs',
+        title: 'API Reference',
+        desc: 'Every endpoint documented with request bodies and runnable live examples.',
+        cta: 'Read',
+        accent: 'amber',
+        icon: <path strokeLinecap="round" strokeLinejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />,
     },
 ];
 
@@ -165,11 +197,17 @@ export default function Landing() {
                             </div>
                         </div>
 
-                        <div className="hidden md:flex items-center gap-6">
+                        <div className="hidden md:flex items-center gap-5">
                             {NAV_LINKS.map((link) => (
                                 <a key={link.href} href={link.href} className="text-xs font-semibold text-slate-500 transition hover:text-slate-900">
                                     {link.label}
                                 </a>
+                            ))}
+                            <span className="h-4 w-px bg-slate-200" />
+                            {PAGE_LINKS.map((link) => (
+                                <Link key={link.href} href={link.href} className="text-xs font-semibold text-slate-500 transition hover:text-slate-900">
+                                    {link.label}
+                                </Link>
                             ))}
                         </div>
 
@@ -408,6 +446,15 @@ export default function Landing() {
                                     <Link href="/planner" className="text-xs text-slate-500 hover:text-slate-900 transition">Route Planner</Link>
                                     <Link href="/control-room" className="text-xs text-slate-500 hover:text-slate-900 transition">Control Room</Link>
                                     <Link href="/dashboard" className="text-xs text-slate-500 hover:text-slate-900 transition">Analytics</Link>
+                                </div>
+                            </div>
+                            <div>
+                                <p className="text-[0.6rem] uppercase tracking-[0.2em] text-slate-400 font-semibold mb-2">System</p>
+                                <div className="flex flex-col gap-1.5">
+                                    <Link href="/network" className="text-xs text-slate-500 hover:text-slate-900 transition">Network Explorer</Link>
+                                    <Link href="/status" className="text-xs text-slate-500 hover:text-slate-900 transition">System Status</Link>
+                                    <Link href="/api-docs" className="text-xs text-slate-500 hover:text-slate-900 transition">API Reference</Link>
+                                    <Link href="/about" className="text-xs text-slate-500 hover:text-slate-900 transition">About</Link>
                                 </div>
                             </div>
                             <div>

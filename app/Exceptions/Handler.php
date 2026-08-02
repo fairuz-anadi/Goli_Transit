@@ -3,8 +3,11 @@
 namespace App\Exceptions;
 
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Inertia\Inertia;
+use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -51,5 +54,41 @@ class Handler extends ExceptionHandler
                     : 'Internal server error.',
             ], 500);
         });
+    }
+
+    /**
+     * Browser-facing failures render the Inertia `Error` page instead of
+     * Laravel's built-in HTML templates, so a visitor never drops out of the
+     * frontend into a bare framework page.
+     */
+    public function render($request, Throwable $e): Response
+    {
+        $response = parent::render($request, $e);
+
+        if (! $this->shouldRenderErrorPage($request, $response)) {
+            return $response;
+        }
+
+        return Inertia::render('Error', ['status' => $response->getStatusCode()])
+            ->toResponse($request)
+            ->setStatusCode($response->getStatusCode());
+    }
+
+    private function shouldRenderErrorPage(Request $request, Response $response): bool
+    {
+        // API clients and XHR callers still want machine-readable errors.
+        if ($request->is('api/*') || $request->expectsJson()) {
+            return false;
+        }
+
+        $status = $response->getStatusCode();
+
+        // 500s keep Laravel's detailed debug page while developing locally;
+        // everything else always gets the styled frontend page.
+        if ($status === 500) {
+            return ! app()->hasDebugModeEnabled();
+        }
+
+        return in_array($status, [403, 404, 419, 429, 503], true);
     }
 }

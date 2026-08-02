@@ -14,6 +14,21 @@ Core judge-facing endpoints:
 - `POST /api/route`
 - `POST /api/anomaly`
 - `GET /api/graph/snapshot`
+- `POST /api/graph/reset`
+
+Frontend pages (all React + Inertia — no page is a raw JSON endpoint or a
+standalone static HTML file):
+
+| Path | Page | What it does |
+| --- | --- | --- |
+| `/` | Landing | Overview, live map preview, live graph counters |
+| `/planner` | Route Planner | Multi-modal trip planning on the interactive map |
+| `/control-room` | Control Room | Run routes, trigger anomalies, inspect the graph |
+| `/network` | Network Explorer | Searchable/filterable node and edge browser |
+| `/dashboard` | Dashboard | Graph composition and congestion analysis |
+| `/status` | System Status | Live health and latency for every endpoint |
+| `/api-docs` | API Reference | Endpoint docs with runnable live examples |
+| `/about` | About | Problem framing, architecture, demo flow |
 
 ## Problem Focus
 
@@ -40,9 +55,10 @@ GoliTransit currently supports:
 
 ```text
 +------------------------------+
-| Frontend / Demo Layer        |
-| /                            |
-| control-room.html            |
+| Frontend Layer (React)       |
+| / /planner /control-room     |
+| /network /dashboard /status  |
+| /api-docs /about             |
 +--------------+---------------+
                |
                v
@@ -307,24 +323,43 @@ Example response shape:
 }
 ```
 
-## Frontend Demo
+### `POST /api/graph/reset`
 
-The live homepage is a public control-room UI that:
+Purpose:
+- clear every anomaly-inflated weight and return the graph to its base state
 
-- loads live graph data from the deployed backend
-- visualizes the network as an SVG map
-- lets users run a route request from the browser
-- lets testers trigger an anomaly and inspect changed edges
-- keeps quick links to `/health` and `/api/graph/snapshot`
+Anomaly weights are cached for six hours so they survive between requests, which
+is what makes the reroute demo work. This endpoint is how you make that demo
+repeatable. The Control Room exposes it as the **Clear anomalies** button.
+
+Example response:
+
+```json
+{
+  "message": "Graph reset to base weights.",
+  "meta": {
+    "edge_count": 212,
+    "inflated_edges": 0
+  }
+}
+```
+
+## Frontend
+
+The frontend is a React + Inertia SPA; every route in `routes/web.php` renders a
+page from `resources/js/Pages`. See the page table near the top of this file.
+`resources/js/Layouts/AppLayout.jsx` provides the shared nav, header, and footer,
+and browser-facing errors (404, 403, 500 in production, …) render the styled
+`Pages/Error.jsx` instead of a bare Laravel page.
 
 Recommended demo flow:
 
-1. Open the live homepage
-2. Show the graph and node counts
-3. Run a route from `farmgate` to `gulshan_2`
-4. Trigger anomaly on `edge_karwan_bazar_tejgaon` and `edge_tejgaon_banani`
-5. Refresh the snapshot and show updated weights
-6. Run the route again and compare the result
+1. Open `/` and show the live map and graph counters
+2. Open `/control-room` and run a route from `farmgate` to `gulshan_2`
+3. Trigger the anomaly preset on `edge_karwan_bazar_tejgaon` and `edge_tejgaon_banani`
+4. Watch the highlighted-edge table show the inflated weight against its base
+5. Run the route again and compare the path and cost
+6. Press **Clear anomalies** to reset, and check `/status` to confirm every endpoint is healthy
 
 ## Local Setup
 
@@ -381,6 +416,28 @@ CACHE_DRIVER=array
 SESSION_DRIVER=cookie
 SESSION_SECURE_COOKIE=true
 ```
+
+### Why `public/index.php` is excluded from Vercel
+
+Vercel publishes everything inside `outputDirectory` (`public/`) as a **static
+asset**, and it resolves `/` to `public/index.php` whenever no `public/index.html`
+exists — which served the raw PHP source at the homepage instead of running the
+app. To avoid that:
+
+- the front-controller body lives in `bootstrap/http-entry.php`
+- `public/index.php` is a thin shim for Apache, `php artisan serve`, and Docker
+- `api/index.php` requires `bootstrap/http-entry.php` directly
+- `public/index.php` is listed in `.vercelignore`
+
+Do not re-add a `public/index.html`: it would shadow `/` again and hide the
+React landing page.
+
+> Note on anomalies in production: `CACHE_DRIVER=array` means anomaly-inflated
+> weights only live for a single serverless invocation, so `/api/anomaly`
+> followed by `/api/graph/snapshot` will show base weights again on Vercel. Use
+> a shared cache store (Redis, DynamoDB, or a database store) if the reroute
+> demo needs to persist there. The Docker/Render deployment uses the file cache
+> and persists correctly.
 
 ## Submission Assets
 

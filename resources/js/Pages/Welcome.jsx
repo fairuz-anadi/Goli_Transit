@@ -337,9 +337,21 @@ export default function Welcome({ laravelVersion, phpVersion }) {
                             </Link>
                             <Link
                                 href="/control-room"
-                                className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 shadow-sm transition hover:bg-slate-50"
+                                className="hidden rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 shadow-sm transition hover:bg-slate-50 sm:inline-flex"
                             >
                                 Control Room
+                            </Link>
+                            <Link
+                                href="/network"
+                                className="hidden rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 shadow-sm transition hover:bg-slate-50 lg:inline-flex"
+                            >
+                                Network
+                            </Link>
+                            <Link
+                                href="/status"
+                                className="hidden rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 shadow-sm transition hover:bg-slate-50 lg:inline-flex"
+                            >
+                                Status
                             </Link>
                             <Link
                                 href={route('dashboard')}

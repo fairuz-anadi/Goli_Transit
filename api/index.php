@@ -18,5 +18,10 @@ foreach ($_ENV as $key => $value) {
     putenv("{$key}={$value}");
 }
 
-// Hand off every dynamic request to the normal Laravel public entrypoint.
-require __DIR__ . '/../public/index.php';
+// Boot Laravel through the shared front controller.
+//
+// This deliberately does NOT require public/index.php: that file is excluded
+// from Vercel deploys (.vercelignore) because Vercel serves the contents of
+// `public/` as static assets and was resolving `/` to it, shipping the raw PHP
+// source to visitors instead of rendering the app.
+require __DIR__ . '/../bootstrap/http-entry.php';

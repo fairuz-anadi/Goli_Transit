@@ -38,6 +38,17 @@ PROJECT_STRUCTURE.md
 # Postman collection
 postman/
 
+# Apache-only front controller.
+#
+# Everything in `public/` (the outputDirectory) is published as a STATIC asset
+# on Vercel, and Vercel resolves `/` to public/index.php when there is no
+# public/index.html — which served the raw PHP source at the homepage instead
+# of running the app. api/index.php boots Laravel via bootstrap/http-entry.php
+# instead, so this file is not needed at runtime here. It is still used by
+# Apache, `php artisan serve`, and the Render Docker image.
+public/index.php
+public/.htaccess
+
 # Misc
 Homestead.json
 Homestead.yaml

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AnomalyController;
+use App\Http\Controllers\Api\GraphResetController;
 use App\Http\Controllers\Api\GraphSnapshotController;
 use App\Http\Controllers\Api\InternalSyncController;
 use App\Http\Controllers\Api\RouteController;
@@ -19,6 +20,7 @@ use Illuminate\Support\Facades\Route;
 Route::post('/route', RouteController::class);
 Route::post('/anomaly', AnomalyController::class);
 Route::get('/graph/snapshot', GraphSnapshotController::class);
+Route::post('/graph/reset', GraphResetController::class);
 
 /*
 |--------------------------------------------------------------------------
