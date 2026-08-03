@@ -10,9 +10,18 @@ class TrustProxies extends Middleware
     /**
      * The trusted proxies for this application.
      *
+     * Vercel (and the Render load balancer) terminate TLS and forward the
+     * original scheme in X-Forwarded-Proto. Without trusting them, every
+     * request looks plain HTTP, so asset() and url() emit http:// links on an
+     * https:// page - the browser then blocks the JS/CSS as mixed content and
+     * the app renders a blank screen.
+     *
+     * '*' is the right value here because the platform assigns proxy IPs
+     * dynamically and the app is never reachable except through that proxy.
+     *
      * @var array<int, string>|string|null
      */
-    protected $proxies;
+    protected $proxies = '*';
 
     /**
      * The headers that should be used to detect proxies.
