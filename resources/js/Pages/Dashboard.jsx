@@ -8,9 +8,9 @@ import { fetchSnapshot } from '@/lib/api';
 
 const SHORTCUTS = [
     {
-        href: '/planner',
-        title: 'Route Planner',
-        detail: 'Plan a live multi-modal trip on the interactive map.',
+        href: '/api-docs',
+        title: 'API Reference',
+        detail: 'The endpoints the public site consumes, with live examples.',
         accent: 'cyan',
     },
     {

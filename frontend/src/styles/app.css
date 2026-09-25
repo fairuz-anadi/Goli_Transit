@@ -1,0 +1,6 @@
+/*
+ * The public site shares the Laravel app's stylesheet so the two surfaces stay
+ * visually identical. Vite inlines this import before PostCSS/Tailwind run, so
+ * the @tailwind directives and custom animations are processed normally.
+ */
+@import '../../../resources/css/app.css';

@@ -6,22 +6,17 @@ use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 
 /**
- * Renders every public page of the app.
+ * Renders the backend service's operator pages.
  *
- * All of these are Inertia/React pages on purpose: the browser should never be
- * handed a raw JSON endpoint or a standalone static HTML file, so anything a
- * visitor can reach has a real frontend page in resources/js/Pages.
+ * The traveller-facing site is a separate React application (frontend/) that
+ * consumes this service's JSON API, so nothing here is meant for the public -
+ * these are the Control Room and the consoles that support it.
  */
 class WelcomeController extends Controller
 {
     public function index(): InertiaResponse
     {
-        return Inertia::render('Landing');
-    }
-
-    public function planner(): InertiaResponse
-    {
-        return Inertia::render('Welcome', [
+        return Inertia::render('Backend/Index', [
             'laravelVersion' => app()->version(),
             'phpVersion' => phpversion(),
         ]);
@@ -47,8 +42,8 @@ class WelcomeController extends Controller
         return Inertia::render('ApiDocs');
     }
 
-    public function about(): InertiaResponse
+    public function dashboard(): InertiaResponse
     {
-        return Inertia::render('About');
+        return Inertia::render('Dashboard');
     }
 }
