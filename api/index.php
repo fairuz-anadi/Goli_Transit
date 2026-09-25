@@ -24,4 +24,4 @@ foreach ($_ENV as $key => $value) {
 // from Vercel deploys (.vercelignore) because Vercel serves the contents of
 // `public/` as static assets and was resolving `/` to it, shipping the raw PHP
 // source to visitors instead of rendering the app.
-require __DIR__ . '/../bootstrap/http-entry.php';
+require __DIR__.'/../bootstrap/http-entry.php';

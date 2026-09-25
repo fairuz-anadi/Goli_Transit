@@ -6,9 +6,7 @@ use App\Services\Graph\GraphManager;
 
 class DemoGraphService
 {
-    public function __construct(protected GraphManager $graphManager)
-    {
-    }
+    public function __construct(protected GraphManager $graphManager) {}
 
     /**
      * Compatibility wrapper so the existing routing layer can consume

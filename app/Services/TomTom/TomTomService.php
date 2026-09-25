@@ -30,14 +30,16 @@ class TomTomService
             ]);
         } catch (\Throwable $e) {
             Log::warning('TomTom Routing request threw an exception', ['message' => $e->getMessage()]);
+
             return null;
         }
 
-        if (!$response->successful()) {
+        if (! $response->successful()) {
             Log::warning('TomTom Routing request failed', [
                 'status' => $response->status(),
                 'body' => $response->body(),
             ]);
+
             return null;
         }
 
@@ -62,10 +64,11 @@ class TomTomService
             ]);
         } catch (\Throwable $e) {
             Log::warning('TomTom Routing request threw an exception', ['message' => $e->getMessage()]);
+
             return null;
         }
 
-        if (!$response->successful()) {
+        if (! $response->successful()) {
             return null;
         }
 
@@ -89,20 +92,22 @@ class TomTomService
             ]);
         } catch (\Throwable $e) {
             Log::warning('TomTom Routing request threw an exception', ['message' => $e->getMessage()]);
+
             return null;
         }
 
-        if (!$response->successful()) {
+        if (! $response->successful()) {
             Log::warning('TomTom Routing request failed', [
                 'status' => $response->status(),
                 'body' => $response->body(),
             ]);
+
             return null;
         }
 
         $points = $response->json('routes.0.legs.0.points');
 
-        if (!is_array($points) || $points === []) {
+        if (! is_array($points) || $points === []) {
             return null;
         }
 
@@ -129,11 +134,13 @@ class TomTomService
             ]);
         } catch (\Throwable $e) {
             Log::warning('TomTom Flow Segment request threw an exception', ['message' => $e->getMessage()]);
+
             return null;
         }
 
-        if (!$response->successful()) {
+        if (! $response->successful()) {
             Log::warning('TomTom Flow Segment request failed', ['status' => $response->status()]);
+
             return null;
         }
 

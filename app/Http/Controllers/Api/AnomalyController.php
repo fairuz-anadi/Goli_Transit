@@ -14,8 +14,7 @@ class AnomalyController extends Controller
         Request $request,
         GraphManager $graphManager,
         SessionManager $sessionManager
-    ): JsonResponse
-    {
+    ): JsonResponse {
         $validated = $request->validate([
             'edge_ids' => ['sometimes', 'array'],
             'edge_ids.*' => ['required', 'string'],

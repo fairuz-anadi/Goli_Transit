@@ -21,6 +21,12 @@ return [
     // type, anomaly pressure, or final-mile distance makes that more practical.
     'long_trip_car_preference_km' => env('GOLITRANSIT_LONG_TRIP_CAR_PREFERENCE_KM', 4.5),
 
+    // Pause between calls in the TomTom/OSRM sync commands, to stay under the
+    // providers' free-tier rate limits. Tests set this to 0 so a faked HTTP
+    // client isn't throttled for no reason.
+    'external_api_delay_microseconds' => env('GOLITRANSIT_EXTERNAL_API_DELAY_US', 100_000),
+    'osrm_api_delay_microseconds' => env('GOLITRANSIT_OSRM_API_DELAY_US', 1_000_000),
+
     // Only these nodes are allowed to switch transport modes in the A3 baseline.
     'transfer_nodes' => [
         'farmgate',

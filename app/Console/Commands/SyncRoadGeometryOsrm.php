@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Console\Commands\Concerns\ThrottlesExternalApi;
 use App\Services\Graph\MapData;
 use App\Services\Osrm\OsrmService;
 use Illuminate\Console\Command;
@@ -9,6 +10,8 @@ use Illuminate\Support\Facades\Storage;
 
 class SyncRoadGeometryOsrm extends Command
 {
+    use ThrottlesExternalApi;
+
     protected $signature = 'golitransit:sync-road-geometry-osrm
                             {--dry-run : Show what would be fetched without writing the geometry file}
                             {--missing-only : Only fetch pairs not already present in the existing geometry file, merging into it instead of overwriting}';
@@ -32,7 +35,7 @@ class SyncRoadGeometryOsrm extends Command
             sort($pair);
             $key = implode('|', $pair);
 
-            if (!isset($pairs[$key])) {
+            if (! isset($pairs[$key])) {
                 $pairs[$key] = ['from' => $pair[0], 'to' => $pair[1], 'sample_edge' => $edge];
             }
         }
@@ -58,15 +61,17 @@ class SyncRoadGeometryOsrm extends Command
             if ($missingOnly && isset($existingGeometry[$key])) {
                 $alreadyPresent++;
                 $bar->advance();
+
                 continue;
             }
 
             $from = $nodeIndex[$pair['from']] ?? null;
             $to = $nodeIndex[$pair['to']] ?? null;
 
-            if (!$from || !$to) {
+            if (! $from || ! $to) {
                 $skipped++;
                 $bar->advance();
+
                 continue;
             }
 
@@ -94,7 +99,7 @@ class SyncRoadGeometryOsrm extends Command
 
             // The public OSRM demo server's usage policy asks for roughly one
             // request per second - stay comfortably under that.
-            usleep(1_000_000);
+            $this->throttle('golitransit.osrm_api_delay_microseconds');
 
             $bar->advance();
         }
@@ -104,12 +109,12 @@ class SyncRoadGeometryOsrm extends Command
 
         $mode = $isDryRun ? '[DRY RUN] ' : '';
         $presentNote = $missingOnly ? ", {$alreadyPresent} already present (untouched)" : '';
-        $this->info("{$mode}{$updated} road segments fetched, {$skipped} skipped{$presentNote} (out of " . count($pairs) . " unique segments).");
+        $this->info("{$mode}{$updated} road segments fetched, {$skipped} skipped{$presentNote} (out of ".count($pairs).' unique segments).');
 
-        if (!$isDryRun) {
+        if (! $isDryRun) {
             $finalGeometry = $missingOnly ? array_merge($existingGeometry, $geometry) : $geometry;
             Storage::put(self::OUTPUT_FILE, json_encode($finalGeometry, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
-            $this->info('Saved to ' . Storage::path(self::OUTPUT_FILE));
+            $this->info('Saved to '.Storage::path(self::OUTPUT_FILE));
         }
 
         if ($skipped > 0) {

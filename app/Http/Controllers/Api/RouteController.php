@@ -9,8 +9,8 @@ use App\Services\Routing\DijkstraRoutingService;
 use App\Services\Sessions\SessionManager;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use RuntimeException;
 
 class RouteController extends Controller

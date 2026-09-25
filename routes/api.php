@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\GraphSnapshotController;
 use App\Http\Controllers\Api\InternalSyncController;
 use App\Http\Controllers\Api\RouteController;
 use Illuminate\Support\Facades\Route;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -34,5 +35,3 @@ Route::post('/graph/reset', GraphResetController::class);
 */
 
 Route::get('/internal/sync-traffic', InternalSyncController::class);
-
-

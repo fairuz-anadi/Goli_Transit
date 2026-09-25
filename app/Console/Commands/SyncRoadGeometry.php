@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Console\Commands\Concerns\ThrottlesExternalApi;
 use App\Services\Graph\MapData;
 use App\Services\TomTom\TomTomService;
 use Illuminate\Console\Command;
@@ -9,6 +10,8 @@ use Illuminate\Support\Facades\Storage;
 
 class SyncRoadGeometry extends Command
 {
+    use ThrottlesExternalApi;
+
     protected $signature = 'golitransit:sync-road-geometry
                             {--dry-run : Show what would be fetched without writing the geometry file}';
 
@@ -29,7 +32,7 @@ class SyncRoadGeometry extends Command
             sort($pair);
             $key = implode('|', $pair);
 
-            if (!isset($pairs[$key])) {
+            if (! isset($pairs[$key])) {
                 $pairs[$key] = ['from' => $pair[0], 'to' => $pair[1], 'sample_edge' => $edge];
             }
         }
@@ -46,9 +49,10 @@ class SyncRoadGeometry extends Command
             $from = $nodeIndex[$pair['from']] ?? null;
             $to = $nodeIndex[$pair['to']] ?? null;
 
-            if (!$from || !$to) {
+            if (! $from || ! $to) {
                 $skipped++;
                 $bar->advance();
+
                 continue;
             }
 
@@ -68,7 +72,7 @@ class SyncRoadGeometry extends Command
             }
 
             // Small delay to stay comfortably under TomTom's free-tier rate limits.
-            usleep(100000);
+            $this->throttle();
 
             $bar->advance();
         }
@@ -77,11 +81,11 @@ class SyncRoadGeometry extends Command
         $this->newLine(2);
 
         $mode = $isDryRun ? '[DRY RUN] ' : '';
-        $this->info("{$mode}{$updated} road segments fetched, {$skipped} skipped (out of " . count($pairs) . " unique segments).");
+        $this->info("{$mode}{$updated} road segments fetched, {$skipped} skipped (out of ".count($pairs).' unique segments).');
 
-        if (!$isDryRun) {
+        if (! $isDryRun) {
             Storage::put('road-geometry.json', json_encode($geometry, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
-            $this->info('Saved to ' . Storage::path('road-geometry.json'));
+            $this->info('Saved to '.Storage::path('road-geometry.json'));
         }
 
         if ($skipped > 0) {
@@ -91,11 +95,11 @@ class SyncRoadGeometry extends Command
 
     protected function travelModeFor(array $edge): string
     {
-        if (!$edge['car_allowed'] && !$edge['rickshaw_allowed'] && $edge['walk_allowed']) {
+        if (! $edge['car_allowed'] && ! $edge['rickshaw_allowed'] && $edge['walk_allowed']) {
             return 'pedestrian';
         }
 
-        if (!$edge['car_allowed'] && $edge['rickshaw_allowed']) {
+        if (! $edge['car_allowed'] && $edge['rickshaw_allowed']) {
             return 'bicycle';
         }
 

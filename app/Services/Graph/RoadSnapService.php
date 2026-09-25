@@ -20,8 +20,7 @@ class RoadSnapService
         protected GraphManager $graphManager,
         protected OsrmService $osrm,
         protected TransportModePolicy $policy,
-    ) {
-    }
+    ) {}
 
     /**
      * Snaps a raw lat/lng in two stages:
@@ -51,7 +50,7 @@ class RoadSnapService
             $from = $nodeIndex[$edge['from']] ?? null;
             $to = $nodeIndex[$edge['to']] ?? null;
 
-            if (!$from || !$to) {
+            if (! $from || ! $to) {
                 continue;
             }
 

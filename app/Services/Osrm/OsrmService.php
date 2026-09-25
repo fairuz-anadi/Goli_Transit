@@ -37,14 +37,16 @@ class OsrmService
             ]);
         } catch (\Throwable $e) {
             Log::warning('OSRM routing request threw an exception', ['message' => $e->getMessage()]);
+
             return null;
         }
 
-        if (!$response->successful()) {
+        if (! $response->successful()) {
             Log::warning('OSRM routing request failed', [
                 'status' => $response->status(),
                 'body' => $response->body(),
             ]);
+
             return null;
         }
 
@@ -55,19 +57,22 @@ class OsrmService
                 'code' => $body['code'] ?? 'unknown',
                 'message' => $body['message'] ?? null,
             ]);
+
             return null;
         }
 
         $route = $body['routes'][0] ?? null;
         $coordinates = $route['geometry']['coordinates'] ?? null;
 
-        if (!is_array($coordinates) || $coordinates === []) {
+        if (! is_array($coordinates) || $coordinates === []) {
             Log::warning('OSRM response had no route geometry coordinates');
+
             return null;
         }
 
-        if (!isset($route['distance'], $route['duration'])) {
+        if (! isset($route['distance'], $route['duration'])) {
             Log::warning('OSRM response had no distance/duration on the route');
+
             return null;
         }
 
@@ -101,14 +106,16 @@ class OsrmService
             $response = Http::timeout(10)->get($url);
         } catch (\Throwable $e) {
             Log::warning('OSRM nearest request threw an exception', ['message' => $e->getMessage()]);
+
             return null;
         }
 
-        if (!$response->successful()) {
+        if (! $response->successful()) {
             Log::warning('OSRM nearest request failed', [
                 'status' => $response->status(),
                 'body' => $response->body(),
             ]);
+
             return null;
         }
 
@@ -116,12 +123,13 @@ class OsrmService
 
         if (($body['code'] ?? null) !== 'Ok') {
             Log::warning('OSRM nearest returned no usable match', ['code' => $body['code'] ?? 'unknown']);
+
             return null;
         }
 
         $location = $body['waypoints'][0]['location'] ?? null;
 
-        if (!is_array($location) || count($location) < 2) {
+        if (! is_array($location) || count($location) < 2) {
             return null;
         }
 

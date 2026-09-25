@@ -6,9 +6,7 @@ use RuntimeException;
 
 class DijkstraRoutingService
 {
-    public function __construct(protected TransportModePolicy $policy)
-    {
-    }
+    public function __construct(protected TransportModePolicy $policy) {}
 
     public function run(array $graph, string $start, string $end, array $modes): array
     {

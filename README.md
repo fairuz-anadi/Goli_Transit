@@ -1,194 +1,131 @@
-# GoliTransit
+<h1 align="center">GoliTransit</h1>
 
-_Deployed update at 2026-07-09._
+<p align="center">
+  <strong>Multi-modal route planning for Dhaka — because the fastest way through the city is rarely one vehicle.</strong>
+</p>
 
-GoliTransit is a multi-modal routing system built for dense Dhaka-style traffic conditions. It combines a simulated city road graph, a routing engine with vehicle-switch penalties, anomaly-triggered rerouting, and a public control-room UI for live exploration.
+<p align="center">
+  <a href="https://github.com/fairuz-anadi/Goli_Transit/actions/workflows/ci.yml">
+    <img alt="CI" src="https://github.com/fairuz-anadi/Goli_Transit/actions/workflows/ci.yml/badge.svg">
+  </a>
+  <img alt="PHP 8.1+" src="https://img.shields.io/badge/PHP-8.1%2B-777BB4">
+  <img alt="Laravel 10" src="https://img.shields.io/badge/Laravel-10-FF2D20">
+  <img alt="React 18" src="https://img.shields.io/badge/React-18-61DAFB">
+</p>
 
-Live project:
+---
 
-- `https://goli-transit.vercel.app`
+## 🏆 Recognition
 
-Core judge-facing endpoints:
+- **Champion** — IEEE WIE Day 2026
+- **Top 10** — Techathon Nationals 2026
+- **Top 10** — Rover Summit 2026
 
-- `GET /health`
-- `POST /api/route`
-- `POST /api/anomaly`
-- `GET /api/graph/snapshot`
-- `POST /api/graph/reset`
+---
 
-## Two services
+## The problem
 
-The public site and the backend are separate applications that run on separate
-ports and share nothing but the JSON API.
+Mainstream route planners assume you travel by one vehicle for the whole trip, and that every street takes a car. Neither holds in Dhaka:
 
-| Service | Dev URL | Code | Purpose |
-| --- | --- | --- | --- |
-| **Public site** | `http://localhost:5173` | `frontend/` | Everything a traveller sees |
-| **Backend** | `http://127.0.0.1:8000` | Laravel app | JSON API + Control Room and operator consoles |
+- large parts of the city are **golis** — alleys too narrow for a car, but fine on a rickshaw or on foot
+- **overpasses** are walk-only, and are often the quickest way across a road
+- the genuinely fastest journey usually **mixes modes**, and changing vehicle has a real cost
+- when a corridor jams, the route should **change**, not stubbornly insist on the blocked road
 
-```bash
-php artisan serve   # terminal 1 - backend
-npm run dev         # terminal 2 - public site
-```
+GoliTransit models all four constraints directly and plans across them in a single search.
 
-### Public site pages (`frontend/`)
+## Features
 
-| Path | Page |
-| --- | --- |
-| `/` | Home — hero, live map, popular trips |
-| `/plan` | Plan a trip — planner, map, insights, step-by-step directions |
-| `/nearby` | Nearby — closest stops to your live location |
-| `/trips` | Recent trips — stored in your browser only |
-| `/coverage` | Coverage — every stop on the network, searchable |
-| `/how-it-works` | The routing model in plain language |
-| `/faq` | Frequently asked questions |
-| `/about` | About the project |
+- **Multi-modal routing** across car, rickshaw and walking in one graph search
+- **Mode-switch penalties**, so the planner doesn't suggest six vehicle changes to save a minute
+- **Transfer nodes** — switching is only allowed where it is actually practical
+- **Anomaly injection** — inflate a corridor's cost and watch live trips re-plan around it
+- **Session rerouting** — saved journeys affected by a disruption are recalculated automatically
+- **Real street geometry** — routes follow OpenStreetMap roads, not straight lines between pins
+- **Live location** — plan from where you're standing, and see the nearest stops
+- **Operations console** — a Control Room for running routes, raising anomalies and inspecting the graph
 
-### Backend pages (operators only)
+## Screenshots
 
-| Path | Page |
-| --- | --- |
-| `/` | Service overview and endpoint list |
-| `/control-room` | Run routes, trigger anomalies, inspect the graph |
-| `/network` | Searchable node and edge browser |
-| `/dashboard` | Graph composition and congestion analysis |
-| `/status` | Live health and latency for every endpoint |
-| `/api-docs` | Endpoint docs with runnable live examples |
+> _Placeholder — add images to `docs/screenshots/` and link them here._
 
-No traveller-facing page is served from the backend. CORS is open on `/api/*`
-and `/health` so the site can call them from its own origin.
-
-## Problem Focus
-
-Traditional route planners assume one vehicle type for the whole journey and often ignore alleyways, overpasses, and mode-switch tradeoffs. GoliTransit is built to model the real constraint-heavy situation of Dhaka:
-
-- cars cannot use many narrow golis
-- overpasses are walk-only transfer paths
-- the best route may combine car, rickshaw, and walking
-- sudden traffic anomalies should degrade parts of the network and trigger rerouting
-
-## What The System Does
-
-GoliTransit currently supports:
-
-- Dhaka-inspired road graph with 30 named nodes and multi-modal edge permissions
-- Dijkstra-based routing across `car`, `rickshaw`, and `walk`
-- configurable mode-switch penalties at transfer nodes
-- session-based route saving for reroute scenarios
-- anomaly updates that inflate edge weights and reroute affected sessions
-- graph snapshot endpoint for transparent before/after verification
-- public control-room frontend that visualizes the graph and route flow
+| | |
+|---|---|
+| **Home** — live map and network counters<br>`docs/screenshots/home.png` | **Plan a trip** — directions and mode breakdown<br>`docs/screenshots/plan.png` |
+| **Nearby** — closest stops to you<br>`docs/screenshots/nearby.png` | **Control Room** — anomaly simulation<br>`docs/screenshots/control-room.png` |
 
 ## Architecture
 
+Two applications that share nothing but a JSON contract.
+
 ```text
-+------------------------------+        +-----------------------------+
-| Public site (React SPA)      |        | Operator consoles (Inertia) |
-| frontend/ on :5173           |        | /control-room /network      |
-| / /plan /nearby /coverage    |        | /dashboard /status /api-docs|
-+--------------+---------------+        +--------------+--------------+
-               |                                       |
-               +------------------+--------------------+
-                                  | HTTP (JSON, CORS)
-               |
-               v
-+------------------------------+
-| API Layer                    |
-| /health                      |
-| /api/route                   |
-| /api/anomaly                 |
-| /api/graph/snapshot          |
-+--------------+---------------+
-               |
-               v
-+------------------------------+
-| Routing Layer                |
-| DijkstraRoutingService       |
-| SessionManager               |
-| mode switches + rerouting    |
-+--------------+---------------+
-               |
-               v
-+------------------------------+
-| Graph Layer                  |
-| MapData                      |
-| GraphManager                 |
-| nodes, edges, weights        |
-+------------------------------+
+┌──────────────────────────────┐        ┌──────────────────────────────┐
+│  Public site (React SPA)     │        │  Operator consoles (Inertia) │
+│  frontend/ · port 5173       │        │  /control-room /network      │
+│  / /plan /nearby /coverage   │        │  /dashboard /status /api-docs│
+└──────────────┬───────────────┘        └───────────────┬──────────────┘
+               │                                        │
+               └──────────────┬─────────────────────────┘
+                              │  HTTP · JSON · CORS
+                 ┌────────────┴─────────────┐
+                 │  API layer               │
+                 │  /api/route  /api/anomaly│
+                 │  /api/graph/*  /health   │
+                 └────────────┬─────────────┘
+                              │
+                 ┌────────────┴─────────────┐
+                 │  Routing layer           │
+                 │  DijkstraRoutingService  │
+                 │  TransportModePolicy     │
+                 │  SessionManager          │
+                 └────────────┬─────────────┘
+                              │
+                 ┌────────────┴─────────────┐
+                 │  Graph layer             │
+                 │  MapData · GraphManager  │
+                 │  58 nodes · 212 edges    │
+                 └──────────────────────────┘
 ```
 
-## Graph Design
+### How a routing decision is made
 
-The graph uses 30 recognizable Dhaka locations, including:
+**1. The city is a weighted, mode-aware graph.**
+Every junction is a node; every street segment is a directed edge. Each edge records `distance_km`, a `base_weight` (its normal cost), a `current_weight` (its cost right now), and which of `car` / `rickshaw` / `walk` may use it. Goli edges refuse cars; overpass edges are walk-only.
 
-- `farmgate`
-- `karwan_bazar`
-- `tejgaon`
-- `mohakhali`
-- `banani`
-- `gulshan_1`
-- `gulshan_2`
-- `badda`
-- `kuril`
-- `motijheel`
-- `old_dhaka`
-- `sadarghat`
+**2. Cost combines distance with live congestion.**
 
-Design choices:
-
-- goli edges block cars but still allow rickshaw and walking
-- overpasses are modeled as walk-only transfers
-- most roads are directional through explicit forward and reverse edges
-- each edge stores both `base_weight` and `current_weight`
-- anomaly updates target explicit edge IDs or a geographic bounding box
-
-## Transport Rules
-
-Allowed modes:
-
-```json
-["car", "rickshaw", "walk"]
+```
+cost = distance_km × route_cost_scale × trafficFactor(mode)
 ```
 
-Edge example:
+where `trafficFactor` derives from `current_weight / base_weight`. Congestion hurts each mode differently — a car is squared (`f²`), a rickshaw feels ~65% of it, walking barely notices (~10%). That asymmetry is what makes the planner hand you off to a rickshaw when a road seizes up.
 
-```json
-{
-  "id": "edge_farmgate_karwan_bazar",
-  "from": "farmgate",
-  "to": "karwan_bazar",
-  "base_weight": 4,
-  "current_weight": 4,
-  "distance_km": 1.3,
-  "car_allowed": true,
-  "rickshaw_allowed": true,
-  "walk_allowed": true,
-  "is_goli": false,
-  "is_overpass": false
-}
-```
+**3. The search runs over (node, mode) pairs, not just nodes.**
+Dijkstra explores states like `farmgate|car` and `farmgate|rickshaw` separately. An edge is only relaxed for a mode it permits, so a car simply cannot enter a goli. At a configured **transfer node**, the search may move between modes at the same place for a fixed `mode_switch_penalty` — which is what stops it from switching constantly.
+
+**4. Ranking prefers the sensible vehicle for the distance.**
+On top of raw cost, `TransportModePolicy` adds a penalty when a mode is a poor fit for the leg's length: under 0.8 km favours walking, 0.8–1.8 km favours a rickshaw, and beyond that a car.
+
+**5. A final pass makes the journey practical.**
+Once the cheapest path is found, each leg is re-examined in context: overpasses become walking, golis become rickshaw, a long remaining distance keeps you in the car, and a short final hop becomes a walk. Mode-switch markers are then inserted wherever consecutive legs differ — which is why `selected_modes` can differ from the modes the search itself used.
+
+**6. Disruptions reshape the map.**
+`POST /api/anomaly` multiplies `current_weight` on the targeted edges (by id, or by geographic bounding box using each edge's midpoint). The new weights are cached for six hours so they survive the request, and every saved session that used an affected edge is re-planned. `POST /api/graph/reset` restores base weights.
 
 ## API
 
-### `GET /health`
+Base URL is the backend service. CORS is open on `/api/*` and `/health`.
 
-Purpose:
-- fast uptime and deployment check
+| Method | Endpoint | Purpose |
+| --- | --- | --- |
+| `GET` | `/health` | Uptime probe → `{"status":"ok"}` |
+| `GET` | `/api/graph/snapshot` | Full graph with live weights and counts |
+| `POST` | `/api/route` | Compute the best multi-modal route |
+| `POST` | `/api/anomaly` | Inflate edges and reroute affected sessions |
+| `POST` | `/api/graph/reset` | Clear every inflated weight |
 
-Example response:
-
-```json
-{
-  "status": "ok"
-}
-```
-
-### `POST /api/route`
-
-Purpose:
-- compute the best currently available route using one or more allowed travel modes
-
-Example request:
+<details>
+<summary><strong>POST /api/route</strong></summary>
 
 ```json
 {
@@ -199,62 +136,13 @@ Example request:
 }
 ```
 
-Example response shape:
+Responds with `data.path`, `data.segments` (each `travel` or `mode_switch`), `data.selected_modes`, `data.total_cost`, `data.switches`, `data.justification` and `data.session_saved`.
 
-```json
-{
-  "data": {
-    "session_id": "demo-farmgate-gulshan",
-    "start": "farmgate",
-    "destination": "gulshan_2",
-    "allowed_modes": ["car", "rickshaw", "walk"],
-    "selected_modes": ["car"],
-    "path": ["farmgate", "karwan_bazar", "tejgaon", "banani", "gulshan_1", "gulshan_2"],
-    "nodes": ["farmgate", "karwan_bazar", "tejgaon", "banani", "gulshan_1", "gulshan_2"],
-    "segments": [
-      {
-        "edge_id": "edge_farmgate_karwan_bazar",
-        "from": "farmgate",
-        "to": "karwan_bazar",
-        "cost": 4,
-        "mode": "car",
-        "previous_mode": "car",
-        "switch_penalty": 0,
-        "type": "travel"
-      }
-    ],
-    "route_segments": [
-      {
-        "edge_id": "edge_farmgate_karwan_bazar",
-        "from": "farmgate",
-        "to": "karwan_bazar",
-        "cost": 4,
-        "mode": "car",
-        "previous_mode": "car",
-        "switch_penalty": 0,
-        "type": "travel"
-      }
-    ],
-    "total_cost": 20,
-    "switches": 0,
-    "computation_time_ms": 4,
-    "justification": {
-      "summary": "Best available route on the current demo graph using the selected travel modes.",
-      "mode_switches": 0,
-      "mode_switch_penalty_applied": 0,
-      "note": "Mode switching is allowed only at configured transfer nodes."
-    },
-    "session_saved": true
-  }
-}
-```
+Errors: `400` for an invalid payload or unknown node, `422` when no route exists under the requested modes.
+</details>
 
-### `POST /api/anomaly`
-
-Purpose:
-- inflate selected edges and reroute active sessions affected by those edges
-
-Example request by edge IDs:
+<details>
+<summary><strong>POST /api/anomaly</strong></summary>
 
 ```json
 {
@@ -263,192 +151,124 @@ Example request by edge IDs:
 }
 ```
 
-Example request by bounding box:
+Or disrupt an area instead — an edge is included when its midpoint falls inside the box:
 
 ```json
 {
   "edge_ids": [],
   "multiplier": 10,
-  "bounding_box": {
-    "min_lat": 23.75,
-    "max_lat": 23.79,
-    "min_lng": 90.39,
-    "max_lng": 90.42
-  }
+  "bounding_box": { "min_lat": 23.75, "max_lat": 23.79, "min_lng": 90.39, "max_lng": 90.42 }
 }
 ```
+</details>
 
-Example response shape:
+## Tech stack
 
-```json
-{
-  "message": "Anomaly applied successfully.",
-  "contract": {
-    "edge_ids": ["edge_karwan_bazar_tejgaon", "edge_tejgaon_banani"],
-    "multiplier": 10,
-    "bounding_box": null
-  },
-  "reroute_summary": {
-    "affected_edge_ids": ["edge_karwan_bazar_tejgaon", "edge_tejgaon_banani"],
-    "sessions_rerouted": 1,
-    "sessions": []
-  },
-  "affected_edges": [
-    {
-      "id": "edge_karwan_bazar_tejgaon",
-      "from": "karwan_bazar",
-      "to": "tejgaon",
-      "base_weight": 4,
-      "current_weight": 40
-    }
-  ],
-  "meta": {
-    "updated_edges": 2
-  }
-}
+| Layer | Technology |
+| --- | --- |
+| Backend | PHP 8.1+, Laravel 10 |
+| Operator UI | React 18 + Inertia.js, Tailwind CSS |
+| Public site | React 18 + React Router 7, Vite, Tailwind CSS |
+| Mapping | Leaflet + OpenStreetMap, OSRM road geometry |
+| Traffic | TomTom Routing/Traffic API (optional) |
+| Testing | PHPUnit 10 |
+| Style | Laravel Pint |
+| CI | GitHub Actions |
+| Hosting | Vercel (serverless PHP), Docker/Render |
+
+## Local setup
+
+**Requirements:** PHP 8.1+, Composer, Node 20+. No database needed — the graph lives in code.
+
+```bash
+git clone https://github.com/fairuz-anadi/Goli_Transit.git
+cd Goli_Transit
+
+composer install
+npm install
+
+cp .env.example .env
+php artisan key:generate
 ```
 
-### `GET /api/graph/snapshot`
+Run the two services in separate terminals:
 
-Purpose:
-- expose the current graph exactly as the system sees it, including live `current_weight` values
-
-Example response shape:
-
-```json
-{
-  "data": {
-    "nodes": [
-      {
-        "id": "farmgate",
-        "name": "Farmgate",
-        "lat": 23.758,
-        "lng": 90.3892,
-        "type": "hub"
-      }
-    ],
-    "edges": [
-      {
-        "id": "edge_karwan_bazar_tejgaon",
-        "from": "karwan_bazar",
-        "to": "tejgaon",
-        "base_weight": 4,
-        "current_weight": 4,
-        "distance_km": 1.5,
-        "car_allowed": true,
-        "rickshaw_allowed": true,
-        "walk_allowed": true,
-        "is_goli": false,
-        "is_overpass": false
-      }
-    ]
-  },
-  "meta": {
-    "source": "graph_manager",
-    "node_count": 30,
-    "edge_count": 64,
-    "goli_edge_count": 6,
-    "overpass_node_count": 2
-  }
-}
+```bash
+php artisan serve    # backend + Control Room → http://127.0.0.1:8000
 ```
 
-### `POST /api/graph/reset`
-
-Purpose:
-- clear every anomaly-inflated weight and return the graph to its base state
-
-Anomaly weights are cached for six hours so they survive between requests, which
-is what makes the reroute demo work. This endpoint is how you make that demo
-repeatable. The Control Room exposes it as the **Clear anomalies** button.
-
-Example response:
-
-```json
-{
-  "message": "Graph reset to base weights.",
-  "meta": {
-    "edge_count": 212,
-    "inflated_edges": 0
-  }
-}
+```bash
+npm run dev          # public site           → http://localhost:5173
 ```
 
-## Frontend
+| Service | URL | Serves |
+| --- | --- | --- |
+| Public site | `http://localhost:5173` | Everything a traveller sees |
+| Backend | `http://127.0.0.1:8000` | JSON API + operator consoles |
 
-The public site is a standalone React + React Router SPA under `frontend/`,
-built with its own Vite config and served on its own port. It contains no
-routing logic — every stop, journey and live weight comes from this service's
-JSON API. See [frontend/README.md](frontend/README.md) for its layout, env vars
-and build.
+To point the site at a different backend, copy `frontend/.env.example` to `frontend/.env` and set `VITE_API_BASE_URL`.
 
-The backend's own pages are React + Inertia under `resources/js/Pages`, sharing
-`Layouts/AppLayout.jsx` for nav and footer. Browser-facing errors (404, 403, 500
-in production, …) render the styled `Pages/Error.jsx` rather than a bare Laravel
-page. The map canvas and planner widgets in `resources/js/Components` are shared
-by both surfaces.
+### Public site pages
+
+| Path | Page |
+| --- | --- |
+| `/` | Home — hero, live map, popular trips |
+| `/plan` | Plan a trip — planner, map, insights, directions |
+| `/nearby` | Nearby — closest stops to your live location |
+| `/trips` | Recent trips — stored in your browser only |
+| `/coverage` | Coverage — every stop, searchable |
+| `/how-it-works`, `/faq`, `/about` | Explainers |
+
+`/plan` accepts `?from=<node_id>&to=<node_id>`, so trip links are shareable.
+
+### Backend pages (operators)
+
+| Path | Page |
+| --- | --- |
+| `/` | Service overview and endpoint list |
+| `/control-room` | Run routes, trigger anomalies, inspect the graph |
+| `/network` | Searchable node and edge browser |
+| `/dashboard` | Graph composition and congestion analysis |
+| `/status` | Live health and latency for every endpoint |
+| `/api-docs` | Endpoint docs with runnable examples |
+
+### Commands
+
+```bash
+php artisan test                      # full suite
+./vendor/bin/pint                     # fix code style
+./vendor/bin/pint --test              # check style without writing
+php artisan golitransit:smoke-check   # graph + route + anomaly + reroute, end to end
+php artisan route:list --except-vendor
+```
 
 ### npm scripts
 
-| Script | What it builds |
+| Script | Builds |
 | --- | --- |
-| `npm run dev` | Public site dev server (port 5173) |
-| `npm run build:site` | Public site static bundle → `frontend/dist` |
-| `npm run dev:backend` | Vite dev server for the backend's Inertia pages |
-| `npm run build` | Backend Inertia assets → `public/build` (used by Vercel and Docker) |
+| `npm run dev` | Public site dev server (5173) |
+| `npm run build:site` | Public site → `frontend/dist` |
+| `npm run dev:backend` | Vite dev server for the Inertia pages |
+| `npm run build` | Backend Inertia assets → `public/build` |
 
-Recommended demo flow:
-
-1. Open `/` and show the live map and graph counters
-2. Open `/control-room` and run a route from `farmgate` to `gulshan_2`
-3. Trigger the anomaly preset on `edge_karwan_bazar_tejgaon` and `edge_tejgaon_banani`
-4. Watch the highlighted-edge table show the inflated weight against its base
-5. Run the route again and compare the path and cost
-6. Press **Clear anomalies** to reset, and check `/status` to confirm every endpoint is healthy
-
-## Local Setup
-
-Install dependencies:
+## Testing
 
 ```bash
-composer install
-npm install
+php artisan test
 ```
 
-First-time setup:
+- **Unit** — the routing engine against hand-built graphs (mode permissions, switch penalties, transfer nodes, cost accumulation), graph/anomaly management, and structural invariants of the Dhaka map itself
+- **Feature** — every API endpoint and operator page, session saving and selective rerouting, validation and error shapes
 
-```bash
-copy .env.example .env
-php artisan key:generate --force
-```
-
-Run locally:
-
-```bash
-php artisan serve
-```
-
-> If you ever see `file_put_contents(...storage/framework/sessions/...): Failed to open stream`,
-> the `storage/framework/{sessions,views,cache/data,testing}` directories are missing (e.g. you
-> wiped `storage/` locally). Laravel needs them to exist and write-protects them from `.gitignore`
-> everywhere except a placeholder `.gitignore` file, so `git checkout -- storage/framework` (or
-> re-cloning) restores them.
-
-Useful checks:
-
-```bash
-php artisan route:list
-php artisan golitransit:benchmark-route --base-url=http://127.0.0.1:8000
-```
+CI runs on every push and pull request: Composer validation, Pint, route registration, the full suite, the smoke check, and both frontend builds.
 
 ## Deployment
 
-This project is deployed on Vercel using:
+### Vercel (current)
 
-- [vercel.json](/d:/Project/Hackathon/GoliTransit/vercel.json)
-- [index.php](/d:/Project/Hackathon/GoliTransit/api/index.php)
+Deployed at **`goli-transit.vercel.app`** via [vercel.json](vercel.json) and [api/index.php](api/index.php).
 
-Required Vercel environment variables:
+Vercel's filesystem is read-only, so the deployment depends on a specific configuration. **Do not change these:**
 
 ```env
 APP_NAME=GoliTransit
@@ -462,56 +282,70 @@ SESSION_DRIVER=cookie
 SESSION_SECURE_COOKIE=true
 ```
 
-### Why `public/index.php` is excluded from Vercel
+`api/index.php` additionally redirects every framework cache path to `/tmp`, the only writable location.
 
-Vercel publishes everything inside `outputDirectory` (`public/`) as a **static
-asset**, and it resolves `/` to `public/index.php` whenever no `public/index.html`
-exists — which served the raw PHP source at the homepage instead of running the
-app. To avoid that:
+**Why `public/index.php` is excluded from Vercel.** Everything inside the `outputDirectory` (`public/`) is published as a *static asset*, and Vercel resolves `/` to `public/index.php` when no `public/index.html` exists — which served raw PHP source at the homepage. So:
 
 - the front-controller body lives in `bootstrap/http-entry.php`
-- `public/index.php` is a thin shim for Apache, `php artisan serve`, and Docker
+- `public/index.php` is a thin shim for Apache, `php artisan serve` and Docker
 - `api/index.php` requires `bootstrap/http-entry.php` directly
 - `public/index.php` is listed in `.vercelignore`
 
-Do not re-add a `public/index.html`: it would shadow `/` again and hide the
-React landing page.
+Do not re-add a `public/index.html`: it would shadow `/` again.
 
-> Note on anomalies in production: `CACHE_DRIVER=array` means anomaly-inflated
-> weights only live for a single serverless invocation, so `/api/anomaly`
-> followed by `/api/graph/snapshot` will show base weights again on Vercel. Use
-> a shared cache store (Redis, DynamoDB, or a database store) if the reroute
-> demo needs to persist there. The Docker/Render deployment uses the file cache
-> and persists correctly.
+> **Anomalies do not persist on Vercel.** `CACHE_DRIVER=array` means inflated weights live for a single invocation, so `/api/anomaly` followed by `/api/graph/snapshot` shows base weights again. A shared store (Redis, DynamoDB, database) would be needed there. The Docker deployment uses the file cache and persists correctly.
 
-## Submission Assets
+The public site is **not** deployed by this project — it needs its own static deployment with `VITE_API_BASE_URL` pointed at the backend.
 
-Included in this repo:
+### Docker / Render
 
-- final source code
-- [README.md](/d:/Project/Hackathon/GoliTransit/README.md)
-- [DEPLOY_CHECKLIST.md](/d:/Project/Hackathon/GoliTransit/DEPLOY_CHECKLIST.md)
-- [PROJECT_STATUS.md](/d:/Project/Hackathon/GoliTransit/PROJECT_STATUS.md)
-- [GoliTransit.postman_collection.json](/d:/Project/Hackathon/GoliTransit/postman/GoliTransit.postman_collection.json)
+[Dockerfile](Dockerfile) builds the frontend assets, installs PHP dependencies and serves through Apache with `public/` as the document root. It respects Render's `PORT`.
 
-Still needed by the team before final submission:
+## Project structure
 
-- final live endpoint verification on the single kept Vercel project
-- demo video
+```text
+app/
+  Console/Commands/     TomTom + OSRM sync, benchmark, smoke check
+  Http/Controllers/     Api/ (routing, anomaly, graph) + operator pages
+  Services/
+    Graph/              MapData, GraphManager, road snapping
+    Routing/            DijkstraRoutingService, TransportModePolicy
+    Sessions/           SessionManager
+config/golitransit.php  Mode priority, penalties, distance bands, transfer nodes
+frontend/               Standalone public site (React + React Router)
+resources/js/           Inertia operator pages + shared map components
+routes/                 api.php, web.php
+tests/                  Unit + Feature
+```
 
-## Dhaka Reference Points
+## Dhaka reference points
 
-These are good route/demo examples:
+Useful start/destination pairs for demos:
 
-- `farmgate` — 23.7580, 90.3892
-- `karwan_bazar` — 23.7515, 90.3908
-- `tejgaon` — 23.7637, 90.3973
-- `mohakhali` — 23.7777, 90.4006
-- `banani` — 23.7937, 90.4043
-- `gulshan_1` — 23.7806, 90.4166
-- `gulshan_2` — 23.7925, 90.4078
-- `badda` — 23.7802, 90.4268
-- `kuril` — 23.8205, 90.4218
-- `motijheel` — 23.7313, 90.4175
-- `old_dhaka` — 23.7118, 90.4074
-- `sadarghat` — 23.7085, 90.4113
+| Node | Coordinates |
+| --- | --- |
+| `farmgate` | 23.7580, 90.3892 |
+| `karwan_bazar` | 23.7515, 90.3908 |
+| `tejgaon` | 23.7637, 90.3973 |
+| `mohakhali` | 23.7777, 90.4006 |
+| `banani` | 23.7937, 90.4043 |
+| `gulshan_1` | 23.7806, 90.4166 |
+| `gulshan_2` | 23.7925, 90.4078 |
+| `badda` | 23.7802, 90.4268 |
+| `kuril` | 23.8205, 90.4218 |
+| `motijheel` | 23.7313, 90.4175 |
+| `old_dhaka` | 23.7118, 90.4074 |
+| `sadarghat` | 23.7085, 90.4113 |
+
+## Demo flow
+
+1. Open the site and show the live map and network counters
+2. Plan `farmgate → gulshan_2` and walk through the mode breakdown
+3. In the Control Room, trigger the corridor preset on `edge_karwan_bazar_tejgaon` and `edge_tejgaon_banani`
+4. Show the inflated weight against its base in the highlighted-edge table
+5. Re-run the route and compare the path and cost
+6. Press **Clear anomalies**, then confirm every endpoint on `/status`
+
+## License
+
+MIT

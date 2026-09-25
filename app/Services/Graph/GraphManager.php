@@ -12,7 +12,9 @@ class GraphManager
     protected const WEIGHTS_CACHE_KEY = 'golitransit:current_weights';
 
     protected static ?array $graph = null;
+
     protected static ?array $roadGeometry = null;
+
     protected static ?array $osrmRoadMetrics = null;
 
     public function __construct(protected MapData $mapData)
@@ -57,7 +59,7 @@ class GraphManager
         sort($pair);
         $key = implode('|', $pair);
 
-        if (!isset($geometry[$key])) {
+        if (! isset($geometry[$key])) {
             return $edge;
         }
 
@@ -75,7 +77,7 @@ class GraphManager
 
         $path = storage_path('app/road-geometry.json');
 
-        if (!file_exists($path)) {
+        if (! file_exists($path)) {
             return static::$roadGeometry = [];
         }
 
@@ -99,7 +101,7 @@ class GraphManager
         sort($pair);
         $key = implode('|', $pair);
 
-        if (!isset($metrics[$key])) {
+        if (! isset($metrics[$key])) {
             return $edge;
         }
 
@@ -109,7 +111,7 @@ class GraphManager
 
         // Fall back to this file's own geometry for the map if the older
         // TomTom-sourced road-geometry.json didn't already provide waypoints.
-        if (!isset($edge['waypoints']) && isset($metrics[$key]['points']) && count($metrics[$key]['points']) >= 2) {
+        if (! isset($edge['waypoints']) && isset($metrics[$key]['points']) && count($metrics[$key]['points']) >= 2) {
             $points = $metrics[$key]['points'];
             $edge['waypoints'] = $edge['from'] === $pair[0] ? $points : array_reverse($points);
         }
@@ -125,7 +127,7 @@ class GraphManager
 
         $path = storage_path('app/road-geometry-osrm.json');
 
-        if (!file_exists($path)) {
+        if (! file_exists($path)) {
             return static::$osrmRoadMetrics = [];
         }
 

@@ -21,6 +21,10 @@
         <env name="APP_ENV" value="testing"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="CACHE_DRIVER" value="array"/>
+        <!-- The sync commands pace themselves for provider rate limits; with a
+             faked HTTP client there is nothing to throttle. -->
+        <env name="GOLITRANSIT_EXTERNAL_API_DELAY_US" value="0"/>
+        <env name="GOLITRANSIT_OSRM_API_DELAY_US" value="0"/>
         <!-- <env name="DB_CONNECTION" value="sqlite"/> -->
         <!-- <env name="DB_DATABASE" value=":memory:"/> -->
         <env name="MAIL_MAILER" value="array"/>

@@ -2,11 +2,14 @@
 
 namespace App\Console\Commands;
 
+use App\Console\Commands\Concerns\ThrottlesExternalApi;
 use App\Services\TomTom\TomTomService;
 use Illuminate\Console\Command;
 
 class SyncTomTomTraffic extends Command
 {
+    use ThrottlesExternalApi;
+
     protected $signature = 'golitransit:sync-tomtom-traffic
                             {--dry-run : Show what would be updated without writing changes}';
 
@@ -32,7 +35,7 @@ class SyncTomTomTraffic extends Command
             );
 
             if ($minutes !== null) {
-                if (!$isDryRun) {
+                if (! $isDryRun) {
                     $graph->setCurrentWeight($edge['id'], $minutes);
                 }
                 $updated++;
@@ -41,7 +44,7 @@ class SyncTomTomTraffic extends Command
             }
 
             // Small delay to stay comfortably under TomTom's free-tier rate limits.
-            usleep(100000); // 100ms
+            $this->throttle();
 
             $bar->advance();
         }
@@ -50,10 +53,10 @@ class SyncTomTomTraffic extends Command
         $this->newLine(2);
 
         $mode = $isDryRun ? '[DRY RUN] ' : '';
-        $this->info("{$mode}{$updated} edges updated, {$skipped} skipped (out of " . count($edges) . " car-allowed edges).");
+        $this->info("{$mode}{$updated} edges updated, {$skipped} skipped (out of ".count($edges).' car-allowed edges).');
 
         if ($skipped > 0) {
-            $this->warn("Skipped edges kept their previous current_weight (API failure or no data returned).");
+            $this->warn('Skipped edges kept their previous current_weight (API failure or no data returned).');
         }
     }
 }

@@ -12,8 +12,7 @@ class SessionManager
     public function __construct(
         protected DemoGraphService $graphService,
         protected DijkstraRoutingService $routingService
-    ) {
-    }
+    ) {}
 
     public function createSession(string $sessionId, array $routeResult): array
     {

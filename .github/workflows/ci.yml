@@ -2,15 +2,16 @@ name: CI
 
 on:
   push:
-    branches:
-      - final
-      - dev-anadi
-      - main
   pull_request:
   workflow_dispatch:
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   quality-checks:
+    name: Lint, test and build
     runs-on: ubuntu-latest
 
     steps:
@@ -33,26 +34,47 @@ jobs:
       - name: Validate Composer configuration
         run: composer validate --strict
 
+      - name: Cache Composer packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/composer/files
+          key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-${{ runner.os }}-
+
       - name: Install PHP dependencies
         run: composer install --no-interaction --prefer-dist --optimize-autoloader
 
       - name: Install frontend dependencies
         run: npm ci
 
+      # Vercel's filesystem is read-only, so the deployed app writes caches to
+      # /tmp. CI has a writable disk and uses the normal storage/ layout, which
+      # git does not carry, so the directories are recreated here.
       - name: Prepare Laravel environment
         run: |
           cp .env.example .env
-          mkdir -p storage/framework/cache storage/framework/sessions storage/framework/testing storage/framework/views bootstrap/cache
+          mkdir -p storage/framework/cache/data \
+                   storage/framework/sessions \
+                   storage/framework/testing \
+                   storage/framework/views \
+                   storage/logs \
+                   bootstrap/cache
           php artisan key:generate --force
 
-      - name: PHP syntax lint
-        run: find app config routes tests -name "*.php" -print0 | xargs -0 -n1 php -l
+      - name: Check code style
+        run: ./vendor/bin/pint --test
 
       - name: Verify route registration
         run: php artisan route:list
 
+      - name: Run test suite
+        run: php artisan test
+
       - name: Run GoliTransit smoke check
         run: php artisan golitransit:smoke-check
 
-      - name: Build frontend assets
+      - name: Build backend (Inertia) assets
         run: npm run build
+
+      - name: Build public site
+        run: npm run build:site
