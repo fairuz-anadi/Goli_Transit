@@ -56,17 +56,15 @@ Goli Transit is a Laravel + React application for multi-modal routing and anomal
 - `GET /internal/sync-traffic` → `InternalSyncController`
 
 ### Web Routes (`routes/web.php`)
-Every web route renders an Inertia/React page from `resources/js/Pages`.
+Operator pages only — the traveller-facing site is the separate app in `frontend/`.
 
-- `GET /` → `WelcomeController@index` (Landing)
-- `GET /planner` → `WelcomeController@planner` (Welcome)
+- `GET /` → `WelcomeController@index` (Backend/Index — service overview)
 - `GET /control-room` → `WelcomeController@controlRoom` (ControlRoom)
 - `GET /network` → `WelcomeController@network` (Network)
+- `GET /dashboard` → `WelcomeController@dashboard` (Dashboard)
 - `GET /status` → `WelcomeController@status` (Status)
 - `GET /api-docs` → `WelcomeController@apiDocs` (ApiDocs)
-- `GET /about` → `WelcomeController@about` (About)
-- `GET /dashboard` → Inertia dashboard
-- `GET /health` → simple JSON health check (the only non-page route)
+- `GET /health` → simple JSON health check
 
 ## Backend Details
 
@@ -77,14 +75,17 @@ Every web route renders an Inertia/React page from `resources/js/Pages`.
 
 ## Frontend Details
 
-- React + Inertia.js frontend under `resources/js`
-  - `Pages/` - one file per route, resolved by name from `WelcomeController`
+Two separate applications:
+
+- **Public site** — `frontend/`, a standalone React + React Router SPA on port
+  5173 with its own Vite/Tailwind config. Talks to the backend only over HTTP
+  via `src/api/client.js` (`VITE_API_BASE_URL`). See `frontend/README.md`.
+- **Operator consoles** — React + Inertia under `resources/js`
+  - `Pages/` - one file per backend route, resolved by name from `WelcomeController`
   - `Layouts/AppLayout.jsx` - shared nav, page header, and footer
   - `Components/Ui/` - Panel, Pill, StatTile, CodeBlock primitives
-  - `Components/LiveMap/` - Leaflet map canvas and route panels
-  - `lib/api.js` - typed wrapper around the JSON API used by every page
-- Standalone concept deck under `frontend/` (not served by the app)
-- `postcss.config.js` and `tailwind.config.js` configure styling
+  - `Components/LiveMap/` - Leaflet map canvas and route panels, shared with the public site
+  - `lib/api.js` - same-origin wrapper around the JSON API
 
 ## Dependencies
 

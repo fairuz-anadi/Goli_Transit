@@ -1,27 +1,91 @@
-# GoliTransit Frontend Hackathon Deck
+# GoliTransit — public site
 
-This folder contains a standalone front-end concept for the hackathon demo.
+The traveller-facing website. This is a standalone React SPA: it holds no routing
+logic of its own and talks to the GoliTransit backend purely over HTTP, so the
+two run as separate services on separate ports.
 
-## What is inside
+## Running it
 
-- `index.html` - the main interface
-- `styles.css` - the full visual system and responsive layout
-- `app.js` - route planner logic, API calls, and SVG map rendering
+From the **project root** (not this folder):
 
-## How to use
+```bash
+# terminal 1 - the backend service (API + Control Room)
+php artisan serve
 
-1. Open `index.html` in a browser, or serve the folder with any static server.
-2. Paste your backend URL into `API base URL`.
-3. Click `Save`, then use:
-   - `Compute route`
-   - `Load snapshot`
-   - `Trigger anomaly`
+# terminal 2 - this site
+npm run dev
+```
 
-## API endpoints used
+| Service | URL | What it serves |
+| --- | --- | --- |
+| Public site | http://localhost:5173 | Everything a traveller sees |
+| Backend | http://127.0.0.1:8000 | JSON API + Control Room and operator consoles |
 
-- `POST /api/route`
-- `GET /api/graph/snapshot`
-- `POST /api/anomaly`
+The site needs the backend running; if it isn't, every page shows a "Can't reach
+the routing service" panel naming the API base URL rather than failing silently.
 
-If the API is unavailable, the page falls back to local mock data so the design
-still works during presentation.
+## Pointing at a different backend
+
+The API base URL comes from `VITE_API_BASE_URL` and defaults to
+`http://127.0.0.1:8000`. Copy `.env.example` to `.env` in this folder to change
+it:
+
+```env
+VITE_API_BASE_URL=https://your-backend.example.com
+```
+
+It is read at build time, so rebuild after changing it.
+
+## Pages
+
+| Route | Page |
+| --- | --- |
+| `/` | Home — hero, live map, popular trips |
+| `/plan` | Plan a trip — the planner, map, insights, step-by-step directions |
+| `/nearby` | Nearby — closest stops to your live location |
+| `/trips` | Recent trips — saved in your browser, never sent anywhere |
+| `/coverage` | Coverage — every stop on the network, searchable |
+| `/how-it-works` | How the routing model works, in plain language |
+| `/faq` | Frequently asked questions |
+| `/about` | About the project |
+
+`/plan` accepts `?from=<node_id>&to=<node_id>`, so trip links are shareable.
+
+## Layout
+
+```text
+frontend/
+  index.html
+  vite.config.js        # port 5173, path aliases
+  tailwind.config.js
+  src/
+    App.jsx             # routes
+    api/client.js       # fetch wrapper around the backend
+    components/         # layout, page header, backend-down notice
+    hooks/useGraph.js   # loads the network graph
+    lib/recentTrips.js  # localStorage trip history
+    pages/
+    styles/app.css
+```
+
+## Shared code
+
+The map canvas, planner form, journey steps and route insights are shared with
+the backend's Control Room and live in `resources/js`. Two aliases reach them:
+
+- `@` / `@shared` → `../resources/js`
+- `@app` → `./src`
+
+`@` has to mean `resources/js` because the shared components import each other
+that way, matching the Laravel app's `jsconfig.json`. Use `@app` for this site's
+own modules.
+
+## Building
+
+```bash
+npm run build:site
+```
+
+Outputs a static bundle to `frontend/dist/`, deployable to any static host. It is
+independent of the backend's `npm run build`, which compiles the Control Room's
+assets into `public/build`.

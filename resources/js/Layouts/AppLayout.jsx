@@ -2,14 +2,15 @@ import { useEffect, useState } from 'react';
 import { Head, Link, usePage } from '@inertiajs/react';
 import ApplicationLogo from '@/Components/ApplicationLogo';
 
+// Operator navigation only. The public traveller pages live in the separate
+// frontend application, not in this service.
 export const NAV_ITEMS = [
-    { href: '/', label: 'Home' },
-    { href: '/planner', label: 'Planner' },
+    { href: '/', label: 'Overview' },
     { href: '/control-room', label: 'Control Room' },
     { href: '/network', label: 'Network' },
+    { href: '/dashboard', label: 'Dashboard' },
     { href: '/status', label: 'Status' },
     { href: '/api-docs', label: 'API' },
-    { href: '/about', label: 'About' },
 ];
 
 function isActive(currentUrl, href) {
@@ -61,7 +62,7 @@ export default function AppLayout({ title, eyebrow, heading, description, action
                                 <div className="text-sm font-black tracking-tight text-slate-900">
                                     Goli<span className="bg-gradient-to-r from-teal-600 to-emerald-600 bg-clip-text text-transparent">Transit</span>
                                 </div>
-                                <div className="hidden text-[0.6rem] uppercase tracking-[0.22em] text-slate-400 sm:block">Dhaka Transit</div>
+                                <div className="hidden text-[0.6rem] uppercase tracking-[0.22em] text-amber-500 sm:block">Backend · Ops</div>
                             </div>
                         </Link>
 
@@ -165,16 +166,17 @@ export default function AppLayout({ title, eyebrow, heading, description, action
                                 </span>
                             </div>
                             <p className="mt-2 max-w-xs text-xs leading-relaxed text-slate-400">
-                                Hyperlocal, multi-modal route planning built for Dhaka's streets and golis.
+                                Routing API and operations console. The public traveller site runs as a separate
+                                application.
                             </p>
                         </div>
                         <div className="flex flex-wrap gap-x-10 gap-y-4">
                             <div>
-                                <p className="mb-2 text-[0.6rem] font-semibold uppercase tracking-[0.2em] text-slate-400">Product</p>
+                                <p className="mb-2 text-[0.6rem] font-semibold uppercase tracking-[0.2em] text-slate-400">Operations</p>
                                 <div className="flex flex-col gap-1.5">
-                                    <Link href="/planner" className="text-xs text-slate-500 transition hover:text-slate-900">Route Planner</Link>
                                     <Link href="/control-room" className="text-xs text-slate-500 transition hover:text-slate-900">Control Room</Link>
                                     <Link href="/network" className="text-xs text-slate-500 transition hover:text-slate-900">Network Explorer</Link>
+                                    <Link href="/dashboard" className="text-xs text-slate-500 transition hover:text-slate-900">Dashboard</Link>
                                 </div>
                             </div>
                             <div>
@@ -182,7 +184,7 @@ export default function AppLayout({ title, eyebrow, heading, description, action
                                 <div className="flex flex-col gap-1.5">
                                     <Link href="/status" className="text-xs text-slate-500 transition hover:text-slate-900">System Status</Link>
                                     <Link href="/api-docs" className="text-xs text-slate-500 transition hover:text-slate-900">API Reference</Link>
-                                    <Link href="/about" className="text-xs text-slate-500 transition hover:text-slate-900">About</Link>
+                                    <Link href="/health" className="text-xs text-slate-500 transition hover:text-slate-900">Health JSON</Link>
                                 </div>
                             </div>
                         </div>

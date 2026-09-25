@@ -15,7 +15,9 @@ return [
     |
     */
 
-    'paths' => ['api/*', 'sanctum/csrf-cookie'],
+    // The public site runs on its own origin, so every route it calls needs
+    // CORS - including the health probe it shows on its status checks.
+    'paths' => ['api/*', 'health', 'sanctum/csrf-cookie'],
 
     'allowed_methods' => ['*'],
 

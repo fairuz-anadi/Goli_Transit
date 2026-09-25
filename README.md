@@ -16,19 +16,47 @@ Core judge-facing endpoints:
 - `GET /api/graph/snapshot`
 - `POST /api/graph/reset`
 
-Frontend pages (all React + Inertia — no page is a raw JSON endpoint or a
-standalone static HTML file):
+## Two services
 
-| Path | Page | What it does |
-| --- | --- | --- |
-| `/` | Landing | Overview, live map preview, live graph counters |
-| `/planner` | Route Planner | Multi-modal trip planning on the interactive map |
-| `/control-room` | Control Room | Run routes, trigger anomalies, inspect the graph |
-| `/network` | Network Explorer | Searchable/filterable node and edge browser |
-| `/dashboard` | Dashboard | Graph composition and congestion analysis |
-| `/status` | System Status | Live health and latency for every endpoint |
-| `/api-docs` | API Reference | Endpoint docs with runnable live examples |
-| `/about` | About | Problem framing, architecture, demo flow |
+The public site and the backend are separate applications that run on separate
+ports and share nothing but the JSON API.
+
+| Service | Dev URL | Code | Purpose |
+| --- | --- | --- | --- |
+| **Public site** | `http://localhost:5173` | `frontend/` | Everything a traveller sees |
+| **Backend** | `http://127.0.0.1:8000` | Laravel app | JSON API + Control Room and operator consoles |
+
+```bash
+php artisan serve   # terminal 1 - backend
+npm run dev         # terminal 2 - public site
+```
+
+### Public site pages (`frontend/`)
+
+| Path | Page |
+| --- | --- |
+| `/` | Home — hero, live map, popular trips |
+| `/plan` | Plan a trip — planner, map, insights, step-by-step directions |
+| `/nearby` | Nearby — closest stops to your live location |
+| `/trips` | Recent trips — stored in your browser only |
+| `/coverage` | Coverage — every stop on the network, searchable |
+| `/how-it-works` | The routing model in plain language |
+| `/faq` | Frequently asked questions |
+| `/about` | About the project |
+
+### Backend pages (operators only)
+
+| Path | Page |
+| --- | --- |
+| `/` | Service overview and endpoint list |
+| `/control-room` | Run routes, trigger anomalies, inspect the graph |
+| `/network` | Searchable node and edge browser |
+| `/dashboard` | Graph composition and congestion analysis |
+| `/status` | Live health and latency for every endpoint |
+| `/api-docs` | Endpoint docs with runnable live examples |
+
+No traveller-facing page is served from the backend. CORS is open on `/api/*`
+and `/health` so the site can call them from its own origin.
 
 ## Problem Focus
 
@@ -54,12 +82,14 @@ GoliTransit currently supports:
 ## Architecture
 
 ```text
-+------------------------------+
-| Frontend Layer (React)       |
-| / /planner /control-room     |
-| /network /dashboard /status  |
-| /api-docs /about             |
-+--------------+---------------+
++------------------------------+        +-----------------------------+
+| Public site (React SPA)      |        | Operator consoles (Inertia) |
+| frontend/ on :5173           |        | /control-room /network      |
+| / /plan /nearby /coverage    |        | /dashboard /status /api-docs|
++--------------+---------------+        +--------------+--------------+
+               |                                       |
+               +------------------+--------------------+
+                                  | HTTP (JSON, CORS)
                |
                v
 +------------------------------+
@@ -346,11 +376,26 @@ Example response:
 
 ## Frontend
 
-The frontend is a React + Inertia SPA; every route in `routes/web.php` renders a
-page from `resources/js/Pages`. See the page table near the top of this file.
-`resources/js/Layouts/AppLayout.jsx` provides the shared nav, header, and footer,
-and browser-facing errors (404, 403, 500 in production, …) render the styled
-`Pages/Error.jsx` instead of a bare Laravel page.
+The public site is a standalone React + React Router SPA under `frontend/`,
+built with its own Vite config and served on its own port. It contains no
+routing logic — every stop, journey and live weight comes from this service's
+JSON API. See [frontend/README.md](frontend/README.md) for its layout, env vars
+and build.
+
+The backend's own pages are React + Inertia under `resources/js/Pages`, sharing
+`Layouts/AppLayout.jsx` for nav and footer. Browser-facing errors (404, 403, 500
+in production, …) render the styled `Pages/Error.jsx` rather than a bare Laravel
+page. The map canvas and planner widgets in `resources/js/Components` are shared
+by both surfaces.
+
+### npm scripts
+
+| Script | What it builds |
+| --- | --- |
+| `npm run dev` | Public site dev server (port 5173) |
+| `npm run build:site` | Public site static bundle → `frontend/dist` |
+| `npm run dev:backend` | Vite dev server for the backend's Inertia pages |
+| `npm run build` | Backend Inertia assets → `public/build` (used by Vercel and Docker) |
 
 Recommended demo flow:
 

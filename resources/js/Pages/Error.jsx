@@ -29,7 +29,7 @@ const MESSAGES = {
 };
 
 const SUGGESTIONS = [
-    { href: '/planner', label: 'Route Planner', detail: 'Plan a multi-modal trip' },
+    { href: '/control-room', label: 'Control Room', detail: 'Routes and anomalies' },
     { href: '/network', label: 'Network Explorer', detail: 'Browse nodes and edges' },
     { href: '/status', label: 'System Status', detail: 'Check what is running' },
 ];
@@ -53,13 +53,13 @@ export default function Error({ status }) {
                         href="/"
                         className="rounded-full bg-gradient-to-r from-cyan-600 to-emerald-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-cyan-600/20 transition hover:-translate-y-0.5 hover:shadow-xl"
                     >
-                        Back to home
+                        Service overview
                     </Link>
                     <Link
-                        href="/planner"
+                        href="/control-room"
                         className="rounded-full border border-slate-200 bg-white px-6 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-50"
                     >
-                        Open the planner
+                        Open the Control Room
                     </Link>
                 </div>
 

@@ -2,7 +2,11 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "dev": "vite",
+        "dev": "vite --config frontend/vite.config.js",
+        "dev:site": "vite --config frontend/vite.config.js",
+        "build:site": "vite build --config frontend/vite.config.js",
+
+        "dev:backend": "vite",
         "build": "vite build"
     },
     "devDependencies": {
@@ -38,6 +42,7 @@
     },
     "homepage": "https://github.com/fairuz-anadi/GoliTransit#readme",
     "dependencies": {
-        "leaflet": "^1.9.4"
+        "leaflet": "^1.9.4",
+        "react-router-dom": "^7.18.2"
     }
 }
