@@ -71,7 +71,11 @@ class RouteApiTest extends TestCase
             $this->assertSame($data['path'][$index + 1], $segment['to']);
         }
 
-        $this->assertSameSize($data['segments'], $data['route_segments']);
+        // route_segments mirrors the travel legs only - mode_switch pseudo-segments
+        // in `segments` don't belong to it, so compare against the travel subset
+        // rather than the full segment list (which may be longer when a switch
+        // happens, as it does on this corridor).
+        $this->assertSameSize($travel, $data['route_segments']);
     }
 
     public function test_every_selected_mode_was_one_the_caller_allowed(): void
@@ -112,8 +116,13 @@ class RouteApiTest extends TestCase
         $response->assertStatus(422);
     }
 
-    public function test_a_long_trip_is_driven_when_the_corridor_is_car_accessible(): void
+    public function test_a_long_trip_starts_in_car_when_the_corridor_is_car_accessible(): void
     {
+        // farmgate -> kuril is long enough overall to start in car, but - like
+        // every multi-leg corridor on this map - no single edge spans the full
+        // long_trip_car_preference_km, and every car-allowed edge also allows
+        // rickshaw, so the tail of the trip still downgrades once the
+        // remaining distance runs short. See test_a_long_trip_switches_off_the_car_for_the_final_leg.
         $response = $this->postJson('/api/route', [
             'start' => 'farmgate',
             'destination' => 'kuril',
@@ -122,8 +131,8 @@ class RouteApiTest extends TestCase
 
         $response
             ->assertOk()
-            ->assertJsonPath('data.selected_modes', ['car'])
-            ->assertJsonPath('data.switches', 0)
+            ->assertJsonPath('data.selected_modes', ['car', 'rickshaw'])
+            ->assertJsonPath('data.switches', 1)
             ->assertJsonPath('data.justification.segment_modes.0.mode', 'car');
     }
 
