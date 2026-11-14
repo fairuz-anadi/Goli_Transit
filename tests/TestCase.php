@@ -20,6 +20,10 @@ abstract class TestCase extends BaseTestCase
     {
         parent::setUp();
 
+        // public/build is gitignored and CI runs the suite before building
+        // assets, so without this every Inertia page 500s on a missing manifest.
+        $this->withoutVite();
+
         // The sync commands pace themselves for provider rate limits. Tests fake
         // the HTTP client, so there is nothing to throttle - and sleeping once
         // per edge added about a minute to every run. Set here rather than in
